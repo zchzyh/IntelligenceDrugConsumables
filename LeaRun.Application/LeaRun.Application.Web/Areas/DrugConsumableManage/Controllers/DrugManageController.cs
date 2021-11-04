@@ -30,5 +30,16 @@ namespace LeaRun.Application.Web.Areas.DrugConsumableManage.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        public ActionResult GetDrugType()
+        {
+            var items = new Dictionary<string, string>();
+
+            items.Add("1001", "国家药品字典");
+            items.Add("1002", "广东省药品目录");
+
+            return ToJsonResult(SetComboBoxValue(items));
+        }
     }
 }
