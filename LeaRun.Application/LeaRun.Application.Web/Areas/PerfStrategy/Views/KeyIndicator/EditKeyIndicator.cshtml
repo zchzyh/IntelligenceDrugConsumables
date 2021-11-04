@@ -1,0 +1,537 @@
+﻿@{
+    ViewBag.Title = "关键绩效指标";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    @System.Web.Optimization.Styles.Render("~/Content/scripts/plugins/jqgrid/css")
+    ;
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js")
+}
+
+<style>
+    .ui-jqgrid tr.jqgrow td {
+        /* jqGrid cell content wrap  */
+        white-space: normal !important;
+        height: auto;
+    }
+</style>
+<script>
+
+    var keyValue = request('keyValue');
+    var csfbh = ''; //主题编号
+    var treeId = '';
+    $(function() {
+        hideDialogButtion();
+        loadData();
+        getKpiGridTable('0');
+        getQuantifyGridTable();
+
+        window.setTimeout(function() {
+                nodeClick();
+            },
+            500);
+    });
+
+    function hideDialogButtion() {
+        var index = top.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        var $IsdialogClose = top.$("#layui-layer" + index).find('.layui-layer-btn').find("#IsdialogClose");
+
+        $IsdialogClose.removeAttr('checked');
+        top.$("#layui-layer" + index).find('.layui-layer-btn').hide();
+    }
+
+    function nodeClick() {
+        debugger;
+        var firstNode = $('#itemTree').find('.bbit-tree-node-el')[0];
+        if (firstNode != undefined) {
+            firstNode.click();
+        } else {
+
+            getGridByTreeNode("0", "0");
+        }
+
+    }
+
+    function getTableTree() {
+        var year = $("#year").attr('data-value');
+        var item = {
+            height: $(window).height() - 47,
+            width: 200,
+            //showcheck: true,
+            url: "../../PerfStrategy/CriticalSuccessFactor/GetTreeList?jxbm=" + year,
+            onnodeclick: function(item) {
+                debugger;
+                var jxbm = $("#year").attr('data-value');
+                var queryJson = {
+                    jxbm: jxbm,
+                    csfbh: item.value
+                }
+                if (treeId !== '' && item.id !== treeId && hasAddOrRemoveData()) {
+                    dialogConfirm("数据列表有添加或移除操作，是否要保存？",
+                        function(r) {
+                            if (r)
+                                saveData();
+                            getGridByTreeNode(item.id, item.value);
+                        }
+                    );
+                } else {
+
+                    getGridByTreeNode(item.id, item.value);
+
+                }
+
+            }
+        };
+        $("#itemTree").treeview(item);
+
+    }
+
+    function getGridByTreeNode(ptreeId, pcsfbh) {
+        addArrayData = [];
+        removeArrayData = [];
+        treeId = ptreeId;
+        csfbh = pcsfbh;
+
+        var jxbm = $("#year").attr('data-value');
+        var queryJson = {
+            jxbm: jxbm,
+            csfbh: pcsfbh
+        }
+
+        $("#kpiGridTable").jqGrid('setGridParam',
+            {
+                url: "../../PerfStrategy/KeyIndicator/GetPageListJson",
+                postData: { queryJson: JSON.stringify(queryJson) }
+            }).trigger('reloadGrid');
+
+        $("#btn_Search").click();
+
+    }
+
+    function treeNodeClick(value) {
+        var id = $("#itemTree").attr('id').trim();
+        var object = $("#itemTree").find(('#' + id + '_' + value.replace(/-/g, "_")));
+        object.click();
+    }
+
+    function loadData() {
+        $("#category2").ComboBox({
+            description: "选择二级指标" //默认
+        });
+
+        $("#year").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false },
+            id: "ItemValue",
+            text: "ItemText",
+            //description: "==请选择==",
+            height: "200px"
+        }).bind("change",
+            function() {
+                getTableTree();
+                // $("#btn_Search").click();
+                nodeClick();
+            });
+
+        $("#category1").ComboBox({
+            url: "../../PerfConfig/KpiSetting/GetFirstQuanJson",
+            param: {},
+            id: "ItemValue",
+            text: "ItemText",
+            description: "选择一级指标",
+            height: "200px"
+        });
+        $("#category1").bind("change",
+            function() {
+                var value = $(this).attr('data-value');
+                debugger;
+                if (value === '') {
+                    // $("#category2").attr("data-text", '选择二级指标');
+                    $("#category2").html('选择二级指标');
+                    $("#category2").attr("data-value", '');
+                    $("#category2-option").find('.ui-select-option-content').remove();
+                    $("#category2").ComboBox({
+                        description: "选择二级指标" //默认
+                    });
+                    return;
+                }
+                $("#category2").ComboBox({
+                    url: "../../PerfConfig/KpiSetting/GetSecondQuanJson",
+                    param: { first: value }, //url参数
+                    id: "ItemValue", //选项值
+                    text: "ItemText", //选项文本
+                    height: "200px",
+                    description: "选择二级指标"
+                });
+            });
+
+        $("#year").ComboBoxSetValue('@ViewBag.ActionYear');
+
+        getTableTree();
+    }
+
+    //加载定量/定性指标列表
+    function getQuantifyGridTable() {
+        var $gridTable = $("#quantifyGridTable");
+        var jxbm = $("#year").attr('data-value');
+        var dataUrl = "../../PerfStrategy/KeyIndicator/GetQuantifyPageList";
+        $gridTable.jqGrid({
+            url: dataUrl + "?queryJson=" + JSON.stringify({ jxbm: jxbm }),
+            datatype: "json",
+            height: $(window).height() - 160,
+            autowidth: true,
+            colModel: [
+                { label: "XH", name: "XH", hidden: true },
+                { label: "KPI编号", name: "KPIBH", hidden: true },
+                { label: "JXBM", name: "JXBM", hidden: true },
+                { label: "指标编码", name: "ZBBH", index: "ZBBH", align: "left", width: "50" },
+                { label: "指标名称", name: "ZBMC", index: "ZBMC", align: "left", width: "100" }
+                //{ label: "战略总目标", name: "ZLZMB", index: "ZLZMB", align: "center", width: "50" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 50, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#quantifyGridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            multiselect: true,
+            onSelectRow: function() {
+                //selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function() {
+                //$("#" + this.id).setSelection(selectedRowIndex, false);
+
+            },
+            loadComplete(xhr) {
+
+                //定量指标列表移除与关键指标相同的项
+                removeSameRecord($("#kpiGridTable"), $("#quantifyGridTable"));
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                jxbm: $("#year").attr('data-value'),
+                zbmc: $("#zbmc").val(),
+                indicator1: $("#category1").attr('data-value'),
+                indicator2: $("#category2").attr('data-value')
+            }
+            var strJson = JSON.stringify(queryJson);
+            debugger;
+            $gridTable.jqGrid('setGridParam',
+                {
+                    url: dataUrl,
+                    postData: { queryJson: strJson }
+                }).trigger('reloadGrid');
+
+        });
+    }
+
+    //加载关键指标列表
+    function getKpiGridTable(csfbh) {
+        var jxbm = $("#year").attr('data-value');
+        var queryJson = {
+            jxbm: jxbm,
+            csfbh: csfbh
+        }
+
+        debugger;
+        var $gridTable = $("#kpiGridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfStrategy/KeyIndicator/GetPageListJson?queryJson=" + JSON.stringify(queryJson),
+            datatype: "json",
+            height: $(window).height() - 111,
+            autowidth: true,
+            colModel: [
+                { label: "XH", name: "XH", hidden: true },
+                { label: "KPI编号", name: "KPIBH", hidden: true },
+                { label: "指标编码", name: "ZBBH", index: "ZBBH", align: "left", width: "30" },
+                { label: "指标名称", name: "ZBMC", index: "ZBMC", align: "left", width: "50" },
+                //{ label: "战略总目标", name: "ZLZMB", index: "ZLZMB", align: "center", width: "50" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 50, //每页数量，Pagination的字段rows
+            rowList: [20, 50, 100],
+            pager: "#kpiGridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            multiselect: true,
+            onSelectRow: function() {
+            },
+            gridComplete: function() {
+            }
+        });
+    }
+
+    var addArrayData = [];
+    var removeArrayData = [];
+
+    function addFromQuantify() {
+        if (!isFactor()) {
+            dialogAlert("请在左边列表选择关键成功因素项");
+            return;
+        }
+
+        addKpiRowData($("#quantifyGridTable"), $("#kpiGridTable"), addArrayData, removeArrayData, false);
+    }
+
+    function addFromKpi() {
+        if (!isFactor()) {
+            dialogAlert("请在左边列表选择关键成功因素项");
+            return;
+        }
+        addKpiRowData($("#kpiGridTable"), $("#quantifyGridTable"), removeArrayData, addArrayData, true);
+    }
+
+    function isFactor() {
+        if (treeId.indexOf("F_") < 0) {
+            return false;
+        }
+        return true;
+    }
+
+    function addKpiRowData(sourceTable, targetTable, arrayData, otherArray, isMove) {
+
+        var selectedIds = sourceTable.jqGrid("getGridParam", "selarrrow");
+        // var selectedId = $("#kpiGridTable").jqGrid("getGridParam", "selrow"); 
+        for (var i = 0; i < selectedIds.length; i++) {
+            //rowData=obj.getRowData(rowid);//这里rowid=rowIds[i];
+            arrayData.push(sourceTable.getRowData(selectedIds[i]));
+        }
+
+        var ids = targetTable.jqGrid('getDataIDs');
+
+        var maxId = ids.length < 1 ? 0 : Math.max.apply(Math, ids);
+        var rowid = parseInt(maxId) + 1;
+        debugger;
+        for (var i = arrayData.length - 1; i >= 0; i--) {
+
+            for (var j = otherArray.length - 1; j >= 0; j--) {
+                if (otherArray[j].KPIBH === arrayData[i].KPIBH) {
+                    otherArray.splice(j, 1);
+                }
+            }
+
+            if (dataExists(targetTable, arrayData[i].KPIBH)) {
+                if (!isMove)
+                    arrayData.splice(i, 1);
+                continue;;
+            }
+            
+            targetTable.jqGrid("addRowData", rowid + i, arrayData[i], "last");
+        }
+
+        deleteSelectRows(sourceTable);
+        hideDataEmptyPrompt(sourceTable, targetTable);
+    }
+
+    function hideDataEmptyPrompt(soureTable, targetTable) {
+        var sid = soureTable.attr("id");
+        var tid = targetTable.attr("id");
+        var sourceIds = soureTable.jqGrid('getDataIDs');
+        var targetIds = targetTable.jqGrid('getDataIDs');
+        if (sourceIds.length > 0) {
+            $("#gview_" + sid).find('.unwritten').hide();
+        }
+        if (targetIds.length > 0) {
+            $("#gview_" + tid).find('.unwritten').hide();
+        }
+    }
+
+    function dataExists(table, kpibh) {
+        var ids = table.jqGrid('getDataIDs');
+        for (var i = 0; i < ids.length; i++) {
+            var data = table.getRowData(ids[i]);
+            if (data.KPIBH === kpibh) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //移除定量列表中存在关键的指标
+    function removeSameRecord(soureTable, targetTable) {
+        var sourceIds = soureTable.jqGrid('getDataIDs');
+        var targetIds = targetTable.jqGrid('getDataIDs');
+        for (var i = 0; i < sourceIds.length; i++) {
+
+            var data = soureTable.getRowData(sourceIds[i]);
+            for (var j = 0; j < targetIds.length; j++) {
+                var targetData = targetTable.getRowData(targetIds[j]);
+                if (data.KPIBH === targetData.KPIBH) {
+                    targetTable.jqGrid("delRowData", targetIds[j]);
+                    break;
+                }
+            }
+
+        }
+    }
+
+    //删除选择的项
+    function deleteSelectRows(gridTable) {
+        var selectedRowIds = gridTable.jqGrid("getGridParam", "selarrrow");
+        var len = selectedRowIds.length;
+        for (var i = 0; i < len; i++) {
+            gridTable.jqGrid("delRowData", selectedRowIds[0]);
+        }
+
+    }
+
+    //保存
+    function saveData() {
+        debugger;
+        var lastAddArrayData = [];
+        for (var i = addArrayData.length - 1; i >= 0; i--) {
+            if (addArrayData[i].XH !== '') {
+                //移除
+                addArrayData.splice(i, 1);
+            }
+        }
+        for (var i = removeArrayData.length - 1; i >= 0; i--) {
+            if (removeArrayData[i].XH === '') {
+                //移除
+                removeArrayData.splice(i, 1);
+            }
+        }
+        var unionArray = $.unique(addArrayData.concat(removeArrayData));
+
+        if (unionArray.length < 1) {
+            dialogAlert("无修改操作");
+            return;
+        }
+
+        for (var i = 0; i < unionArray.length; i++) {
+            var dataRow = {
+                XH: unionArray[i].XH,
+                KPIBH: unionArray[i].KPIBH,
+                ZBBH: unionArray[i].ZBBH,
+                CSFBH: csfbh,
+                JXBM: unionArray[i].JXBM
+            };
+            lastAddArrayData.push(dataRow);
+        }
+
+        $.ajax({
+            url: "../../PerfStrategy/KeyIndicator/SaveForm",
+            data: {
+                entitiesJson: JSON.stringify(lastAddArrayData),
+                __RequestVerificationToken: $("input[name = '__RequestVerificationToken']").val()
+            },
+            type: "Post",
+            async: false,
+            success: function(data) {
+                addArrayData = [];
+                removeArrayData = [];
+                dialogAlert(JSON.parse(data).message);
+            }
+        });
+
+    }
+
+    //是否添加或移除操作
+    function hasAddOrRemoveData() {
+        var copyAddArrayData = $.extend(true, [], addArrayData);
+        var copyRemoveArrayData = $.extend(true, [], removeArrayData);
+        debugger;
+        for (var i = copyAddArrayData.length - 1; i >= 0; i--) {
+            if (copyAddArrayData[i].XH !== '') {
+                //移除
+                copyAddArrayData.splice(i, 1);
+            }
+        }
+        for (var i = copyRemoveArrayData.length - 1; i >= 0; i--) {
+            if (copyRemoveArrayData[i].XH === '') {
+                //移除
+                copyRemoveArrayData.splice(i, 1);
+            }
+        }
+        try {
+            var unionArray = $.unique(copyAddArrayData.concat(copyRemoveArrayData));
+
+            if (unionArray.length < 1) {
+                return false;
+            }
+        } catch (e) {
+            alert(e);
+        }
+        return true;
+    }
+</script>
+<table style="margin-left: 3px; margin-top: 3px;">
+    <tr>
+        <td>年度：</td>
+        <td style="width: 100px">
+            <div id="year" style="height: 25px" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+            </div>
+        </td>
+        <td></td>
+    </tr>
+</table>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+
+    <div class="ui-layout-center" style="width: 30%; float: left; padding-left: 3px">
+        <div class="center-Panel">
+            <div id="itemTree" style="margin: 3px; overflow: auto;"></div>
+        </div>
+
+    </div>
+    <div class="ui-layout-center" style="width: 33%; float: left; padding-left: 3px">
+        <div>
+            <table style="border: none; width: 100%">
+                <tr>
+                    <td>
+                        <div id="gridTitle" style="margin: 3px; overflow: auto;">关键绩效指标：</div>
+                    </td>
+                    <td style="text-align: right">
+                        <input style="padding-right: 5px; height: 20px; background-color: #286090; color: white" type="button" onclick="saveData()" value="保存"/>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="gridPanel">
+                <table id="kpiGridTable"></table>
+                <div id="kpiGridPager"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="width: 3%; float: left; padding-left: 5px; height: 400px; vertical-align: middle; position: relative;">
+        <input type="button" onclick="addFromKpi()" value=">>" title="移除" style="position: absolute; top: 50%; left: 65%; margin: -5% 0 0 -35%; width: 26px;"/>
+        <input type="button" onclick="addFromQuantify()" value="<<"  title="添加"style="position: absolute; top: 60%; left: 65%; margin: -5% 0 0 -35%; width: 26px;"/>
+    </div>
+    <div class="ui-layout-center" style="width: 33%; float: right; padding-right: 3px">
+
+        <div >
+            <div id="gridTitle" style="margin: 3px; overflow: auto;">定量/定性绩效指标：</div>
+            <table style="width: 100%">
+
+                <tr>
+                    <td class="formValue" style="width: 50%">
+                        <div id="category1" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                        </div>
+                    </td>
+                    <td class="formValue">
+                        <div id="category2" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="zbmc" placeholder="指标名称" type="text"/>
+                    </td>
+                    <td>
+                        <input type="button" style="background-color: #286090; color: white" id="btn_Search"value="查询"/>
+                    </td>
+                </tr>
+            </table>
+            <div class="gridPanel">
+                <table id="quantifyGridTable"></table>
+                <div id="quantifyGridPager"></div>
+            </div>
+        </div>
+
+    </div>
+</div>

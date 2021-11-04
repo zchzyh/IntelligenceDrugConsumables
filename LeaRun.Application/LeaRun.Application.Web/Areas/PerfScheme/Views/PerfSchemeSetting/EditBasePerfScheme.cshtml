@@ -1,0 +1,119 @@
+﻿@{
+    ViewBag.Title = "编辑绩效基础方案";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 20px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        $("#SYND").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: { forSearch: false },//url参数
+            id: "ItemValue",//选项值
+            text: "ItemText",//选项文本
+            height: "200px",
+            description: "==请选择=="//默认
+        });
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfScheme/PerfSchemeSetting/GetBasePerfSchemeData",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('#STATUS' + data.IsEnabled).trigger('click');
+                    if (data.FABH) $("#FABH").attr("readOnly", true);
+                    $("#SYND").ComboBoxSetValue(data.JXBM);
+                }
+            });
+        }
+    }
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = 1;
+        postData.JXBM = postData.SYND;
+        postData.SYND = $("#SYND").text();
+        if (!postData.FABH) {
+            dialogMsg('请输入基础方案编号', 0);
+        }
+        else {
+            //postData.JXBM = $("#SYND").find("option:selected").val();
+            //postData.JXBM = $("#SYND").find('.dropdown-text').val();
+            $.SaveForm({
+                url: "../../PerfScheme/PerfSchemeSetting/SaveBasePerfScheme",
+                param: postData,
+                loading: "正在保存数据...",
+                success: function () {
+                    $.currentIframe().$("#gridTable").trigger("reloadGrid");
+                }
+            });
+        }
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 20px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">创建人</th>
+            <td class="formValue">
+                <input id="CREATOR" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr style="display:none">
+            <th class="formTitle">绩效编码</th>
+            <td class="formValue">
+                <input id="JXBM" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr style="display">
+            <th class="formTitle">方案编号</th>
+            <td class="formValue">
+                <input id="FABH" type="text" class="form-control" placeholder="请输入基础方案编号" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">适用年度<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="SYND" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">方案名称<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="FAMC" type="text" class="form-control" placeholder="请输入基础方案名称" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">适用对象<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="SYDX" type="text" class="form-control" placeholder="请输入适用对象" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                备注
+            </th>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 70px;"></textarea>
+            </td>
+        </tr>  
+    </table>
+</div>

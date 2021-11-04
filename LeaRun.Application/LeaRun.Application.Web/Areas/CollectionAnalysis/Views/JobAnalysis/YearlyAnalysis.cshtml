@@ -1,0 +1,175 @@
+﻿@{
+    ViewBag.Title = "年度采集分析";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+
+    .frozen-div {
+        height: auto !important;
+    }
+
+    .frozen-bdiv {
+        top: 62px !important;
+    }
+</style>
+<script>
+    var jxbm = ''
+    $(function () {
+        InitialPage();
+        GetTableGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridHeight($(window).height() - 173.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: {},
+            success: function (data) {
+                data.splice(0, 1)
+                jxbm = data[0].ItemValue
+                $("#year .dropdown-text").html(data[0].ItemText).attr('data-value', jxbm);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', jxbm);
+                });
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            $('#gridTable').jqGrid('setGridParam', {
+                url: 'GetYearTaskAnalysisList',
+                postData: {
+                    "queryJson": JSON.stringify({
+                        name: $("#txt_Keyword").val(),
+                        jxbm: jxbm
+                    })
+                },
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //加载分析列表
+    function GetTableGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        var colModels = [
+            { label: "任务人", name: "NAME", index: "NAME", width: "90", frozen: true, align: "center" },
+            { label: "总任务数", name: "RwCount", index: "RwCount", width: "70", frozen: true, align: "center" }
+        ]
+        for (var i = 0; i < 12; i++) {
+            (function (i) {
+                colModels.push({
+                    label: "任务数", name: "MonthDatas", index: i, width: "60", sortable: false, align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue[i].TotalCount;
+                    }
+                })
+                colModels.push({
+                    label: "已完成", name: "MonthDatas", index: i, width: "60", sortable: false, align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue[i].DoneCount;
+                    }
+                })
+                colModels.push({
+                    label: "未完成", name: "MonthDatas", index: i, width: "60", sortable: false, align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue[i].UndoCount;
+                    }
+                })
+            })(i)
+        }
+        $gridTable.jqGrid({
+            url: "GetYearTaskAnalysisList",
+            datatype: "json",
+            postData: {
+                "queryJson": JSON.stringify({
+                    jxbm: jxbm
+                })
+            },
+            viewrecords: true,//显示检索记录
+            height: $(window).height() - 173.5,
+            width: $(window).width() - 33,
+            shrinkToFit: false,
+            autoScroll: true,
+            colModel: colModels,
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#tablePager",
+            sortname: 'NAME',
+            sortorder: 'asc',
+            rownumbers: true
+        });
+        $gridTable.jqGrid('setGroupHeaders', {
+            useColSpanStyle: true,
+            groupHeaders: [
+                { startColumnName: "MonthDatas", numberOfColumns: 3, titleText: '<label class="month"></label>月' }
+            ]
+        })
+        //$gridTable.jqGrid('setFrozenColumns');
+        $('.ui-th-column-header:gt(11)').remove()
+        $('.ui-th-column-header, [colSpan=3]').each(function (index) {
+            $(this).find('.month').html(index + 1)
+        })
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入任务人" style="width: 200px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="gridPanel">
+            <table id="gridTable"></table>
+            <div id="tablePager"></div>
+        </div>
+    </div>
+</div>

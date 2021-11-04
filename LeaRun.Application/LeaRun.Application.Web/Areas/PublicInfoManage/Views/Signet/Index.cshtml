@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+<link href="~/Content/styles/learun-bill.css" rel="stylesheet" />
+<script src="~/Content/scripts/plugins/signet/jquery.zsign.js"></script>
+<link href="~/Content/scripts/plugins/signet/jquery.zsign.css" rel="stylesheet" />
+<script>
+    $(function () {
+        //top.$(".content-iframe").css("background-color", "#f9f9f9");
+        $(".price-box").zSign({ img: '/Content/scripts/plugins/signet/signet.gif' });
+    })
+</script>
+

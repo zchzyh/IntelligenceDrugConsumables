@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = "基础绩效方案-指标配置（废弃）";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    @System.Web.Optimization.Styles.Render("~/Content/scripts/plugins/jqgrid/css");
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js")
+}
+<script>
+    var keyValue = request('keyValue');
+    var year = request('year');
+    $(function () {
+        hideDialogButtion();
+        InitialPage();
+        GetSchemeType();
+        GetGrid();
+    });
+    function hideDialogButtion() {
+        var index = top.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        var $IsdialogClose = top.$("#layui-layer" + index).find('.layui-layer-btn').find("#IsdialogClose");
+
+        $IsdialogClose.removeAttr('checked');
+        top.$("#layui-layer" + index).find('.layui-layer-btn').hide();
+    }
+    var gridHeight = $(window).height() - 140;
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight(gridHeight);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    function GetSchemeType() {
+        $("#category1").ComboBox({
+            url: "../../PerfConfig/KpiSetting/GetFirstQuanJson",
+            param: {},
+            id: "ItemValue",
+            text: "ItemText",
+            description: "选择一级指标",
+            height: "200px"
+        });
+    }
+
+    var selectedRowIndex = 0;
+    //加载表格
+    function GetGrid() {
+        var queryJson = {
+            keyword: $("#txt_Keyword").val(),
+            year: $("#Year").find('.dropdown-text').attr('data-value'),
+        };
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetKPIListJson",
+            datatype: "json",
+            height: gridHeight,
+            autowidth: true,
+            colModel: [
+                { label: "绩效年度", name: "JXND", index: "JXND", align: "center" },
+                { label: "一级指标", name: "FirstZBMC", index: "FirstZBMC", align: "center" },
+                { label: "二级指标", name: "SecZBMC", index: "SecZBMC", align: "center" },
+                { label: "三级指标", name: "ThirdZBMC", index: "ThirdZBMC", align: "center" },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 200,//每页数量，Pagination的字段rows
+            //rownumbers: true,//是否显示自增序号
+            pager: "#gridPager",
+            sortname: 'FirstZBBH',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            //rowList: [20, 50, 100],
+            gridview: true,
+            multiselect: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                indicator1: $("#category1").attr('data-value'),
+            }
+            var strJson = JSON.stringify(queryJson);
+            debugger;
+            $gridTable.jqGrid('setGridParam',
+                {
+                    url: dataUrl,
+                    postData: { queryJson: strJson }
+                }).trigger('reloadGrid');
+        });
+    }
+    //保存表单
+    function AcceptClick() {
+        //if (!$('#form1').Validform()) {
+        //    return false;
+        //}
+        var ids = $("#grid-table").jqGrid('getGridParam', 'selarrrow');
+        var rowData = $("#grid-table").jqGrid('getRowData', ids[i]);
+        $.SaveForm({
+            url: "../../PerfScheme/PerfSchemeSetting/SavePerfSchemeKPI",
+            param: rowData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td class="formValue" style="width: 60%">
+                    <div id="category1" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                    </div>
+                </td>
+                <td style="padding-left: 5px;">
+                    <input type="button" style="background-color: #286090; color: white" id="btn_Search" value="查询" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;保存</a>
+        </div>
+        <script>$('.toolbar').authorizeButton()</script>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

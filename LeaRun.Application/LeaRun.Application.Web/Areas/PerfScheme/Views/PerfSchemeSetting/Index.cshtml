@@ -1,0 +1,333 @@
+﻿@{
+    ViewBag.Title = "基础绩效方案设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function () {
+        InitialPage();
+        GetSchemeType();
+        GetGrid();
+    });
+    var gridHeight = $(window).height() - 140;
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight(gridHeight);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载树
+    function GetSchemeType() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: {},
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#Year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Year .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+        $("#category1").ComboBox({
+            url: "../../PerfConfig/KpiSetting/GetFirstQuanJson",
+            param: {},
+            id: "ItemValue",
+            text: "ItemText",
+            description: "选择一级指标",
+            height: "200px"
+        });
+    }
+    var selectedRowIndex = 0;
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetPerfSchemeListJson",
+            datatype: "json",
+            height: gridHeight,
+            autowidth: true,
+            colModel: [
+                //{ label: "适用年度", name: "SYND", index: "SYND", align: "center" },
+                { label: "方案编号", name: "FABH", index: "FABH", align: "center", width: "70" },
+                { label: "方案名称", name: "FAMC", index: "FAMC" },
+                { label: "适用对象", name: "SYDX", index: "SYDX" },
+                //{ label: "备注", name: "REMARK", index: "REMARK", align: "center" },
+                {
+                    label: "配置情况", name: "STATUS", index: "STATUS", align: "center", width: "70",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "已配置" : "未配置";
+                    }
+                },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 200,//每页数量，Pagination的字段rows
+            rownumbers: true,//是否显示自增序号
+            pager: "#gridPager",
+            sortname: 'FABH',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            rowList: [20, 50, 100],
+            gridview: true,
+            //multiselect: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                queryKPI();
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+
+        var queryJson = {
+            keyword: $("#txt_Keyword").val(),
+            year: $("#Year").find('.dropdown-text').attr('data-value'),
+            fabh: $("#gridTable").jqGridRowValue("FABH"),
+        };
+        var $gridKPITable = $("#gridKPITable");
+        $gridKPITable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetKPIListJson",
+            datatype: "json",
+            height: gridHeight,
+            autowidth: true,
+            colModel: [
+                { label: "绩效年度", name: "JXND", index: "JXND", align: "center", width: "70" },
+                { label: "一级指标", name: "FirstZBMC", index: "FirstZBMC", align: "center", width: "70" },
+                { label: "二级指标", name: "SecZBMC", index: "SecZBMC", align: "center", width: "70" },
+                { label: "三级指标", name: "ThirdZBMC", index: "ThirdZBMC" },
+                { label: "三级指标编号", name: "ThirdZBBH", hidden: true },
+                { label: "指标类别", name: "ZBLB", hidden: true },
+                { label: "明细序号", name: "XH", hidden: true },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 200,//每页数量，Pagination的字段rows
+            rownumbers: true,//是否显示自增序号
+            pager: "#gridPager",
+            sortname: 'FirstZBBH',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            //rowList: [20, 50, 100],
+            gridview: true,
+            multiselect: true,
+            gridComplete: function () {
+                var rows = $("#" + this.id).getGridParam("records");
+                for (var k = 1; k < rows + 1; k++) {
+                    var rowData = $("#gridKPITable").jqGrid('getRowData', k);
+                    if (rowData.XH != '') {
+                        $("#" + this.id).setSelection(k, false);
+                    }
+                }
+            },
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            }
+        });
+
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //方案grid的查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                keyword: $("#txt_Keyword").val(),
+                year: $("#Year").find('.dropdown-text').attr('data-value'),
+            };
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //指标grid的查询事件
+        $("#btn_Query").click(function () {
+            queryKPI()
+        });
+
+        $("#btn_Print").click(function () {
+            Print()
+        });
+    }
+    function queryKPI() {
+        var queryJson = {
+            keyword: $("#txt_Keyword").val(),
+            year: $("#Year").find('.dropdown-text').attr('data-value'),
+            fabh: $("#gridTable").jqGridRowValue("FABH"),
+            indicator1: $("#category1").attr('data-value'),
+        }
+        $("#gridKPITable").jqGrid('setGridParam', {
+            postData: { queryJson: JSON.stringify(queryJson) },
+            //保证搜索时是第一页
+            page: 1
+        }).trigger('reloadGrid');
+    };
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '新增-基础绩效方案',
+            url: '/PerfScheme/PerfSchemeSetting/EditBasePerfScheme',
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("FABH");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑-基础绩效方案',
+                url: '/PerfScheme/PerfSchemeSetting/EditBasePerfScheme?keyValue=' + keyValue,
+                width: "500px",
+                height: "400px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("FABH");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../PerfScheme/PerfSchemeSetting/DelBasePerfScheme",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                    $("#gridKPITable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择需要删除的基础方案！', 0);
+        }
+    }
+    //指标配置
+    function btn_enabled() {
+        var data = [];
+        var keyValue = $("#gridTable").jqGridRowValue("FABH");
+        var year = $("#gridTable").jqGridRowValue("JXBM");
+        var ids = $("#gridKPITable").jqGrid('getGridParam', 'selarrrow');
+        for (var i = 0; i < ids.length; i++) {
+            var rowData = $("#gridKPITable").jqGrid('getRowData', ids[i]);
+            data.push({ id: rowData.ThirdZBBH, zblx: rowData.ZBLB });
+        }
+        if (keyValue) {
+            $.SaveForm({
+                url: '../../PerfScheme/PerfSchemeSetting/SavePerfSchemeKPI',
+                param: { KPI: JSON.stringify(data), keyValue: keyValue },
+                loading: "正在保存数据...",
+
+                success: function () {
+                    $.currentIframe().$("#gridTable").trigger("reloadGrid");
+                    $.currentIframe().$("#gridKPITable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择需要配置指标的基础方案！', 0);
+        }
+    }
+    function Print() {
+        dialogOpen({
+            id: "PrintDialog",
+            title: '打印-基础绩效方案',
+            url: encodeURI('/PerfScheme/PerfSchemeSetting/PrintPerfScheme?title=' + $("#gridTable").jqGridRowValue("FAMC")
+                + '&keyword=' + $("#txt_Keyword").val()
+                + '&year=' + $("#Year").find('.dropdown-text').attr('data-value')
+                + '&fabh=' + $("#gridTable").jqGridRowValue("FABH")
+                + '&indicator1=' + $("#category1").attr('data-value')),
+            width: "700px",
+            height: "500px",
+            btn: ['打印', '关闭'],
+            callBack: function (iframeId) {
+                // 火狐
+                if (window.parent.frames["PrintDialog"] == null) {
+                    $(window).parent().find('#PrintDialog').focus();
+                    $(window).parent().find('#PrintDialog').contentWindow.print();
+                }
+                // IE
+                else {
+                    window.parent.frames["PrintDialog"].focus();
+                    window.parent.frames["PrintDialog"].print();
+                }
+            }
+        });
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel" style="float:left; width: 50%; padding-right: 0.8%;">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="Year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入方案名称" style="width: 100px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                    <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                    <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                </div>
+                <script>$('.toolbar').authorizeButton()</script>
+            </div>
+
+        </div>
+        <div class="gridPanel">
+            <table id="gridTable"></table>
+            <div id="tablePager"></div>
+        </div>
+    </div>
+    <div class="center-Panel" style="float:right; width: 48%; padding-right: 0.8%;">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td class="formValue" style="width: 60%">
+                            <div id="category1" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                            </div>
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Query" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Print" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;打印</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <a id="lr-enabled" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-refresh"></i>&nbsp;指标绑定</a>
+                </div>
+                <script>$('.toolbar').authorizeButton()</script>
+            </div>
+        </div>
+        <div class="gridPanel">
+            <table id="gridKPITable"></table>
+            <div id="tableKPIPager"></div>
+        </div>
+    </div>
+</div>

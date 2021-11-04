@@ -1,0 +1,276 @@
+﻿@{
+    ViewBag.Title = "采集表信息管理";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function() {
+        loadData();
+        initialPage();
+    });
+
+    //初始化页面
+    function initialPage() {
+
+        //resize重设(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+        debugger;
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 135);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+        $("#itemTree").setTreeHeight($(window).width() * 0.7 - 28);
+    };
+
+    var selectedRowIndex = 0;
+
+    //加载树
+    function loadData() {
+        getGetDataCategory();
+        getGridTable();
+
+        $("#STATUS .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#STATUS .dropdown-text").html(text).attr('data-value', value);
+        });
+    }
+
+    function getGetDataCategory() {
+        //加载分类数据
+        $.SetForm({
+            url: "../../CollectionManage/TableManage/GetDataCategoryListJson",
+            param: { grade: "1", forSearch: true },
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#SSLB').find('ul').append(row);
+                    });
+
+                $("#SSLB .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#SSLB .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+
+    //加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TableManage/GetPageListJson",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "采集表编码", name: "CJBBM", index: "CJBBM", align: "center", width: "60"},
+                { label: "采集表简称", name: "CJBMC", index: "CJBMC", width: "100" },
+                { label: "采集表全名", name: "CJBQM", index: "CJBQM", width: "120" },
+                { label: "所属类别", name: "SSLBMC", index: "SSLBMC", align: "center", width: "50" },
+                {
+                    label: "采集方式",
+                    name: "CJFS",
+                    index: "CJFS",
+                    align: "center",
+                    width: "50",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "1" ? "手工" : "自动";
+                    }
+                },
+                { label: "采集频率", name: "CJPLMC", index: "CJPL", align: "center", width: "50" },
+                {
+                    label: "是否必填",
+                    name: "SFBT",
+                    index: "SFBT",
+                    align: "center",
+                    width: "50",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "1" ? "是" : "否";
+                    }
+                },
+                { label: "排序", name: "PX", index: "PX", align: "center", width: "50" },
+                {
+                    label: "状态",
+                    name: "STATUS",
+                    index: "STATUS",
+                    align: "center",
+                    width: "50",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "1" ? "有效" : "无效";
+                    }
+                },
+                { label: "创建时间", name: "CREATEAT", index: "CREATEAT", align: "center", width: "100" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 30, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            onSelectRow: function() {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            ondblClickRow: function() {
+                btn_edit();
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                SSLB: $("#SSLB").find('.dropdown-text').attr('data-value'),
+                STATUS: $("#STATUS").find('.dropdown-text').attr('data-value'),
+                CJBMC: $("#CJBMC").val(),
+                CJBBM: $("#CJBBM").val()
+            }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+    }
+
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '新增-采集表',
+            url: '/CollectionManage/TableManage/EditTable',
+            width: "500px",
+            height: "450px",
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("CJBBM");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑-采集表',
+                url: '/CollectionManage/TableManage/EditTable?keyValue=' + keyValue,
+                width: "500px",
+                height: "450px",
+                callBack: function(iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("CJBBM");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../CollectionManage/TableManage/DelRecord",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择其中一条记录！', 0);
+        }
+    }
+
+    //启用/停用
+    function btn_enabled() {
+        var keyValue = $("#gridTable").jqGridRowValue("CJBBM");
+        var status = $("#gridTable").jqGridRowValue("STATUS");
+        var enabled = false;
+        if (status === "有效") {
+            enabled = false;
+        } else {
+            enabled = true;
+        }
+        if (keyValue) {
+            $.ConfirmAjax({
+                msg: "请确认是否要将当前记录设为 ”" + (enabled ? "有效" : "无效") + "“？",
+                url: "../../CollectionManage/TableManage/ModifyStatus",
+                param: { keyValue: keyValue, enabled: enabled },
+                success: function(data) {
+                    $("#gridTable").jqGrid('setRowData', selectedRowIndex, { STATUS: enabled?"1":"0" });
+                }
+            });
+        } else {
+            dialogMsg('请选择需要操作的记录！', 0);
+        }
+    }
+</script>
+    <div class="titlePanel">
+        <div class="title-search">
+            <table>
+                <tr>
+                    <td>
+                        <div id="SSLB" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown">所属类别</a>
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu"></ul>
+                        </div>
+                    </td>
+                    <td>
+                        <div id="STATUS" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择状态</a>
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a data-value="">全部</a>
+                                </li>
+                                <li>
+                                    <a data-value="1">有效</a>
+                                </li>
+                                <li>
+                                    <a data-value="0">无效</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td>
+                        <input id="CJBBM" type="text" class="form-control" placeholder="请输入采集表编码" style="width: 200px;" />
+                    </td>
+                    <td>
+                        <input id="CJBMC" type="text" class="form-control" placeholder="请输入采集表名称" style="width: 200px;" />
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="toolbar">
+            <div class="btn-group">
+                <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                <a id="lr-enabled" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-refresh"></i>&nbsp;启用/停用</a>
+            </div>
+            <script>$('.toolbar').authorizeButton()</script>
+        </div>
+    </div>
+    <div class="gridPanel">
+        <table id="gridTable"></table>
+        <div id="gridPager"></div>
+    </div>

@@ -1,0 +1,149 @@
+﻿@{
+    ViewBag.Title = "添加最终评定报告";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+    <style>
+        .form td.formValue {
+            padding-left: 40px;
+        }
+    </style>
+
+    <script>
+        var serial_num = request('serial_num');
+    $(function () {
+        initControl();
+       
+    });
+
+    //初始化控件
+    function initControl() {
+        $year_code = $("#year_code");
+        $year_code.ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: { forSearch: false },//url参数
+            id: "ItemValue",//选项值
+            text: "ItemText",//选项文本
+            height: "150px",
+            description: "==请选择==",//默认
+            loadSuccess: function () {
+                $("#year_code-option li").eq(0).click();
+            }
+        });
+        //维度
+        $("#cd").ComboBox({
+            url: "../../PerfStrategy/StrategicThemes/GetDimensionList",
+            param: { forSearch: false },
+            id: "BSCBH",
+            text: "BSCMC",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //成功因素
+        $("#csf").ComboBox({
+            url: "../../PerfStrategy/CriticalSuccessFactor/GetSuccessFactorList",
+            param: { forSearch: false },
+            id: "CSFBH",
+            text: "CSFMC",
+            description: "==请选择==",
+            height: "300px"
+        });
+        //战略
+        getThemeList($("#cs").val());
+        //获取表单
+        if (!!serial_num) {
+            $.SetForm({
+                url: "../../PerfReport/FinalAssessmentRep/GetFinalAssessmentRep",
+                param: {  serial_num: serial_num },
+                success: function (data) {
+                    $("#form1").SetWebControls(data); 
+                    if (data.year_code) $("#year_code").attr("readonly", true);
+                 
+                }
+                
+            });
+            debugger;
+        }
+    }
+    //战略
+    function getThemeList(jxbm) {
+        $("#cs").html('');
+        $("#cs").attr('data-value', '');
+        var value = jxbm;
+        $("#cs").ComboBox({
+            url: "../../PerfStrategy/StrategicThemes/GetListByYear",
+            param: { jxbm: value },
+            id: "ZTBH",
+            text: "ZTMC",
+            description: "==请选择==",
+            height: "100px"
+        });
+    }
+    //成功因素
+    //function getsuccessfactorList() {
+    //    $("#csf").html('');
+    //    $("#csf").attr('data-value', '');
+    //    var value = jxbm;
+    //}
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(serial_num);
+        debugger;
+       // postData.STATUS = $('input[name="STATUS"]:checked').val()
+        $.SaveForm({
+            url: "../../PerfReport/FinalAssessmentRep/SaveMeta?serial_num=" + serial_num,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        }); 
+    }
+    </script>
+
+    <div style="margin-top: 20px; margin-right: 30px;">
+        <table class="form" height="300" width="300">
+            <tr style="display:none">
+                <th class="formTitle">创建人</th>
+                <td class="formValue">
+                    <div id="CREATOR" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">年度<font face="宋体">*</font></th>
+                <td class="formValue">
+                    <div id="year_code" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull" ></div>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">战略目标<font face="宋体">*</font></th>
+                <td class="formValue">
+                    <div id="cs" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">维度<font face="宋体">*</font></th>
+                <td class="formValue">
+                    <div id="cd" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">成功因素<font style="display:none;" face="宋体">*</font></th>
+                <td class="formValue">
+                    <div id="csf" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle">
+                    评定内容
+                </th>
+                <td class="formValue">
+                    <textarea id="assessment" class="form-control" style="height: 90px;"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>

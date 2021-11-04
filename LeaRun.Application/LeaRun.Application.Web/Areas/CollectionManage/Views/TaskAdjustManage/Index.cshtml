@@ -1,0 +1,278 @@
+﻿@{
+    ViewBag.Title = "采集期限调整";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function() {
+        loadData();
+        initialPage();
+    });
+
+    //初始化页面
+    function initialPage() {
+
+        //resize重设(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                    resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+        debugger;
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 136);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+    };
+
+    var selectedRowIndex = 0;
+
+    //加载树
+    function loadData() {
+        bindEvent();
+        getYearSetting();
+        getGridTable();
+
+        $("#STATUS .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#STATUS .dropdown-text").html(text).attr('data-value', value);
+        });
+
+
+    }
+
+    function bindEvent() {
+        $("#month .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#month .dropdown-text").html(text).attr('data-value', value);
+        });
+
+    }
+
+
+    function getYearSetting() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../CollectionManage/TaskAdjustManage/GetYearStrJson",
+            param: {},
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#JXND').find('ul').append(row);
+                    });
+                //年度选中，生成查询条件
+                $("#JXND .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#JXND .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+
+    //加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TaskAdjustManage/GetPageList",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "任务编号", name: "RWBH", hidden: true },
+                { label: "任务人", name: "UserName", index: "UserName", width: "50" },
+                { label: "部门/科室", name: "DeptName", index: "DeptName", width: "80" },
+                { label: "采集任务内容（表）", name: "CJBMC", index: "CJBMC", width: "200" },
+                { label: "采集频率", name: "CJPLMC", index: "CJPL", align: "center", width: "60" },
+                { label: "年度", name: "ND", index: "ND", align: "center", width: "50" },
+                { label: "月度", name: "YD", index: "YD", align: "center", width: "40" },
+                { label: "任务开始时间", name: "KSSJ", index: "KSSJ", align: "center" },
+                { label: "任务截止时间", name: "JZSJ", index: "JZSJ", align: "center" },
+                { label: "创建时间", name: "CREATEAT", index: "CREATEAT", align: "center" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 30, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            multiselect: true, //行头复选框
+            multiboxonly: true,
+            pager: "#gridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            ondblClickRow: function() {
+                adjustTask();
+            },
+            onSelectRow: function() {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel();
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                jxbm: $("#JXND").find('.dropdown-text').attr('data-value'),
+                month: $("#month").find('.dropdown-text').attr('data-value'),
+                deptName: $("#department").val(),
+                userName: $("#userName").val(),
+                tableName: $("#tableName").val()
+            }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+    }
+
+    function adjustTask() {
+        var keyValue = $("#gridTable").jqGridRowValue("RWBH");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑-采集任务期限调整',
+                url: '/CollectionManage/TaskAdjustManage/EditTask?keyValue=' + keyValue,
+                width: "500px",
+                height: "400px",
+                callBack: function(iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+
+    function getSelectTaskIds() {
+        var taskIds = [];
+        var keyValues = $("#gridTable").jqGrid('getGridParam', 'selarrrow');
+
+        keyValues.forEach(function(item) {
+            var rowData = $("#gridTable").jqGrid('getRowData', item);
+            taskIds.push(rowData.RWBH);
+
+        });
+        return taskIds;
+    }
+
+    function adjustTasks() {
+        var keyValue = $("#gridTable").jqGridRowValue("RWBH");
+        if (!keyValue) {
+            dialogMsg('您没有选中任何数据项,请选中后再操作！', 0);
+            return false;
+        }
+        dialogOpen({
+            id: "Form",
+            title: '编辑-采集任务期限调整',
+            url: '/CollectionManage/TaskAdjustManage/EditTasks',
+            width: "500px",
+            height: "200px",
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    }
+
+    function TaskInfo(taskId, startDate, endDate) {
+        this.RWBH = taskId;
+        this.KSSJ = startDate;
+        this.JZSJ = endDate;
+    }
+
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <div id="JXND" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择绩效年度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="month" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择月份</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a data-value="">全部</a>
+                            </li>
+                            <li>
+                                <a data-value="1">1月</a>
+                            </li>
+                            <li>
+                                <a data-value="2">2月</a>
+                            </li>
+                            <li>
+                                <a data-value="3">3月</a>
+                            </li>
+                            <li>
+                                <a data-value="4">4月</a>
+                            </li>
+                            <li>
+                                <a data-value="5">5月</a>
+                            </li>
+                            <li>
+                                <a data-value="6">6月</a>
+                            </li>
+                            <li>
+                                <a data-value="7">7月</a>
+                            </li>
+                            <li>
+                                <a data-value="8">8月</a>
+                            </li>
+                            <li>
+                                <a data-value="9">9月</a>
+                            </li>
+                            <li>
+                                <a data-value="10">10月</a>
+                            </li>
+                            <li>
+                                <a data-value="11">11月</a>
+                            </li>
+                            <li>
+                                <a data-value="12">12月</a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+
+                <td>
+                    <input id="userName" type="text" class="form-control" placeholder="任务人" style="width: 100px;" />
+                </td>
+                <td>
+                    <input id="department" type="text" class="form-control" placeholder="部门/科室" style="width: 100px;" />
+                </td>
+                <td>
+                    <input id="tableName" type="text" class="form-control" placeholder="采集表名称" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-adjustTask" class="btn btn-default" onclick="adjustTask()"><i class="fa fa-plus"></i>&nbsp;单个调整</a>
+            <a id="lr-adjustTask" class="btn btn-default" onclick="adjustTasks()"><i class="fa fa-plus"></i>&nbsp;批量调整</a>
+        </div>
+        @*<script>$('.toolbar').authorizeButton()</script>*@
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

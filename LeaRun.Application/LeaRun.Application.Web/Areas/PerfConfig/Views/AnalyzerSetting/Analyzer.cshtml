@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "分析器修改";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+</style>
+
+<script>
+    debugger;
+    var keyValue = request('keyValue');
+    var fxqlx = request("fxqlx");
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfConfig/AnalyzerSetting/GetMetaDataAnalyzerJson",
+                param: { fxqbm: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                }
+            });
+            $('#FXQBM').attr("readonly", 'readonly').css("background-color", '#eee');
+        } else {
+            $('#FXQBM').removeAttr("readonly").css("background-color", '');
+        }
+    }
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        eval("postData.FXQLX=" + fxqlx);
+        $.SaveForm({
+            url: "../../PerfConfig/AnalyzerSetting/SaveMetaDataAnalyzer",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#analyzerTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display:none;">
+            <th class="formTitle">创建者></th>
+            <td class="formValue">
+                <input id="CREATOR" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">分析编码<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="FXQBM" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">分析器名称<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="FXQMC" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">分析注释<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="FXQZJ" type="text" class="form-control" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                SQL语句
+            </th>
+            <td class="formValue">
+                <textarea id="FXQSQL" class="form-control" style="height: 100px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

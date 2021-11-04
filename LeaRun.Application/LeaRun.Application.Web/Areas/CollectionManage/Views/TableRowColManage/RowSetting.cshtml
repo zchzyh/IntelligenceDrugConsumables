@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "RowSetting";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    @System.Web.Optimization.Styles.Render("~/Content/scripts/plugins/jqgrid/css")
+    ;
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js")
+    ;
+}
+<script >
+    var tbBm = request('tbBm');
+    var year = request('year');
+    $(function() {
+
+        hideDialogButtion();
+        getTableTree();
+        getRowSort();
+        initTreeList();
+    });
+    function hideDialogButtion() {
+        var index = top.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        var $IsdialogClose = top.$("#layui-layer" + index).find('.layui-layer-btn').find("#IsdialogClose");
+
+        $IsdialogClose.removeAttr('checked');
+        top.$("#layui-layer" + index).find('.layui-layer-btn').hide();
+    }
+    function refresh() {
+        if ($("#itemTree").is(':hidden')) {
+            var $gridTable = $("#gridTable");
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: {}
+                }).trigger('reloadGrid');
+        } else {
+            getTableTree();
+        }
+    } 
+
+    function initTreeList() {
+        $("#itemTree").setTreeHeight(280);
+        $('#gridTable').setGridWidth(($('.gridPanel').width()));
+    }
+
+    function showTab(flag) {
+        if (flag === 1) {
+            $(".gridPanel").show();
+            $("#itemTree").hide();
+        } else {
+            $(".gridPanel").hide();
+            $("#itemTree").show();
+        }
+
+
+    }
+
+    function getTableTree() {
+        debugger;
+        var item = {
+            height: 540,
+            showcheck: true,
+            url: "../../CollectionManage/TableRowColManage/GetTableRowTreeJson?rowName=" + "&tbbm=" + tbBm+"&year="+year
+        };
+        $("#itemTree").treeview(item);
+        initTreeList();
+    }
+
+    function getRowSort() {
+        var queryJson = {
+            tbBm: tbBm,
+            year: year
+        };
+        //var selectedRowIndex = 1;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TableRowColManage/GetRowDataSort?queryJson=" + JSON.stringify(queryJson),
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "采集表编码", name: "CJBBM", hidden: true },
+                { label: "行编码", name: "HXBM", index: "HXBM", align: "center" },
+                { label: "行名称", name: "RowName", index: "RowName", align: "center" },
+                { label: "排序", name: "PX", index: "PX", align: "center", width: "50" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 100, //每页数量，Pagination的字段rows
+            rowList: [50, 100, 200],
+            pager: "#gridPager",
+            sortname: 'PX', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'asc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            onSelectRow: function() {
+                //selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(1, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+
+    }
+
+    function saveData() {
+        debugger;
+        var hxbms = String($("#itemTree").getCheckedAllNodes());
+        var postData = {
+            year: year,
+            tbBm: tbBm,
+            hxbms: hxbms
+        };
+
+
+        $.SaveForm({
+            url: "../../CollectionManage/TableRowColManage/SaveRowSetting",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+<div>
+    <table>
+        <tr>
+            <td style="padding-left: 5px; padding-top: 5px">
+                <a id="btnSave" class="btn btn-primary" onclick="saveData()">&nbsp;保存</a>
+                <a id="btnRefresh" class="btn btn-primary" onclick="refresh()">&nbsp;刷新</a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-left: 5px; padding-top: 5px">
+                <a id="tabRow" class="btn btn-default" onclick="showTab(0)">&nbsp;行项目设置</a>
+                <a id="tabRowPx" class="btn btn-default" onclick="showTab(1)">&nbsp;行排序设置</a>
+            </td>
+
+        </tr>
+    </table>
+    <div id="itemTree" style="height: 280px; display: block;"></div>
+    <div class="gridPanel" style="display:none ; width: 100%;">
+        <table id="gridTable"></table>
+        <div id="gridPager"></div>
+    </div>
+</div>

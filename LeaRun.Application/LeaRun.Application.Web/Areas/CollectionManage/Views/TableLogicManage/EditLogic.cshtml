@@ -1,0 +1,116 @@
+﻿@{
+    ViewBag.Title = "采集表逻辑配置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue { padding-left: 20px; }
+
+    .tableMargin { padding-top: 100px }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    var parentId = request('parentId');
+    $(function() {
+        initData();
+    });
+
+    //初始化控件
+    function initData() {
+        $("#CJBBM").ComboBoxTree({
+            description: "==请选择==",
+            height: "150px",
+            url: "../../CollectionManage/TableManage/GetTableTreeJson",
+            allowSearch: true
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CollectionManage/TableLogicManage/GetEntityJson",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    debugger;
+                    $("#form1").SetWebControls(data);
+                    if (data.STATUS === "1")
+                        $('input:radio[name=STATUS]')[0].checked = true;
+                    else
+                        $('input:radio[name=STATUS]')[1].checked = true;
+                }
+            });
+            $("#CJBBM").attr("disabled", "disabled");
+        } else {
+            $("#CJBBM").ComboBoxTreeSetValue(parentId);
+        }
+    }
+
+
+    //保存表单
+    function AcceptClick() {
+
+        if ($("#CJBBM").attr("data-value")==null ||$("#CJBBM").attr("data-value").length <= 3) {
+            dialogAlert("请选择采集表");
+            return false;
+        }
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+     
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        
+        debugger;
+        $.SaveForm({
+            url: "../../CollectionManage/TableLogicManage/SaveForm",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+        return false;
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display: none">
+            <th class="formTitle">序号<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="XH" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>采集表名称：</th>
+            <td class="formValue">
+                <div id="CJBBM" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>规范：</th>
+            <td class="formValue">
+                <input id="YWGZ" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull"/>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">是否可用：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display: inline-block;" class="rdio rdio-color_c">
+                    <input type="radio" name="STATUS" value="1" checked="checked"/><label for="STATUS1">是</label>
+                </div>
+                <div style="display: inline-block; padding-right: 30px;" class="rdio rdio-color_a">
+                    <input type="radio" name="STATUS" value="0"/><label for="STATUS0">否</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                备注：
+            </th>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 50px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

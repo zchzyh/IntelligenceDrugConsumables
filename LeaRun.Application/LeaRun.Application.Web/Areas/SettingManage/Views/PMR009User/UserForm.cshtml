@@ -1,0 +1,43 @@
+﻿@{
+    ViewBag.Title = "分配帐号";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<script src="~/Content/scripts/plugins/jquery.md5.js"></script>
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        $("#Account").val(request('Account'));
+        $("#RealName").val(request('RealName'));
+    })
+    //保存事件
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData["Password"] = $.md5($.trim($("#Password").val()))
+        $.SaveForm({
+            url: "../../BaseManage/User/SaveRevisePassword?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+            }
+        })
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">    
+        <tr>
+            <td class="formTitle">账户<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="Account" type="text" onblur="$.ExistField(this.id,'../../BaseManage/User/ExistAccount')" class="form-control" placeholder="请输入账户" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">密码<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="Password" type="text" class="form-control" placeholder="请输入密码" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+    </table>
+</div>

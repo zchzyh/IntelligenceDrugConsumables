@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "综合等级设置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 20px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        $("#YEAR").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: { forSearch: false },//url参数
+            id: "ItemValue",//选项值
+            text: "ItemText",//选项文本
+            height: "200px",
+            description: "==请选择=="//默认
+        });
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfConfig/AppraiseSeeting/GetSynLevelData",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('#STATUS' + data.IsEnabled).trigger('click');
+                    if (data.XH) $("#XH").attr("readOnly", true);
+                }
+            });
+        }
+    }
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        $.SaveForm({
+            url: "../../PerfConfig/AppraiseSeeting/SaveSynLevel",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+<div style="margin-top: 20px; margin-right: 20px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">创建人</th>
+            <td class="formValue">
+                <input id="CREATOR" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr style="display:none">
+            <th class="formTitle">序号</th>
+            <td class="formValue">
+                <input id="XH" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">年度<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="YEAR" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">综合等级名称<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="DJMC" type="text" class="form-control" placeholder="请输入指标等级名称" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">分值下限<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="FZXX" type="text" class="form-control" placeholder="请输入分值下限" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">分值上限<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="FZSX" type="text" class="form-control" placeholder="请输入分值上限" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">是否启用<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display:inline-block;padding-right:30px;" class="rdio rdio-color_a"><input type="radio" name="STATUS" id="STATUS1" value="1" checked /><label for="STATUS1">启用</label></div>
+                <div style="display:inline-block;" class="rdio rdio-color_c"><input type="radio" name="STATUS" id="STATUS0" value="0" /><label for="STATUS0">停用</label></div>
+            </td>
+        </tr>
+    </table>
+</div>

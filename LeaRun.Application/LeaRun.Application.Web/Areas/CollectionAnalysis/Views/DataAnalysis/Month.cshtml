@@ -1,0 +1,333 @@
+﻿@{
+    ViewBag.Title = "数据项月度分析";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script src="~/Content/scripts/plugins/charts/Chart.js"></script>
+<script>
+    var jxbm = '',
+        nd = '',
+        yd = '',
+        firstType = '',
+        secondType = '',
+        dataItem = '',
+        chartTitle = '',
+        chartValues = []
+    $(function () {
+        InitialPage();
+        GetTableGrid();
+        Canvas();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridHeight($(window).height() - 143.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        for (var i = 0; i < 12; i++) {
+            var temp = 0;
+            chartValues.push(temp);
+        }
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: {},
+            success: function (data) {
+                data.splice(0, 1);
+                jxbm = data[0].ItemValue
+                $("#year .dropdown-text").html(data[0].ItemText).attr('data-value', jxbm);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', jxbm);
+                });
+            }
+        });
+        // 加载月份数据
+        $.SetForm({
+            url: "../../CollectionManage/DataCorrect/GetMonthsJson?forSearch=true",
+            param: {},
+            success: function (data) {
+                yd = data[0].ItemValue;
+                $("#month .dropdown-text").html(data[0].ItemText).attr('data-value', yd);
+                $.each(data, function (id, item) {
+                    if (item.ItemText != null) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#month').find('ul').append(row);
+                    }
+                });
+                //月份选中，生成查询条件
+                $("#month .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    yd = $(this).find('a').attr('data-value');
+                    $("#month .dropdown-text").html(text).attr('data-value', yd);
+                });
+            }
+        });
+        //加载一级分类数据
+        $.SetForm({
+            url: "../../PerfConfig/KpiSetting/GetFirstKindJson",
+            param: {},
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#FirstKind').find('ul').append(row);
+                });
+                //一级分类选中，生成查询条件
+                $("#FirstKind .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    firstType = value;
+                    $("#FirstKind .dropdown-text").html(text).attr('data-value', value);
+                    //加载二级分类数据
+                    $.SetForm({
+                        url: "../../PerfConfig/KpiSetting/GetSecondKindJson",
+                        param: { first: $("#FirstKind").find('.dropdown-text').attr('data-value') },
+                        success: function (data) {
+                            $('#SecondKind').find('ul').html("");
+                            secondType = '';
+                            $("#SecondKind .dropdown-text").html('选择二级分类').attr('data-value', secondType);
+                            $.each(data, function (id, item) {
+                                var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                                $('#SecondKind').find('ul').append(row);
+                            });
+                            //二级分类选中，生成查询条件
+                            $("#SecondKind .dropdown-menu li").click(function () {
+                                var text = $(this).find('a').html();
+                                var value = $(this).find('a').attr('data-value');
+                                secondType = value;
+                                $("#SecondKind .dropdown-text").html(text).attr('data-value', value);
+                                // 加载基础数据项
+                                $.SetForm({
+                                    url: "../../PerfConfig/KpiSetting/GetStandardDataKeyValueList",
+                                    param: {
+                                        "queryJson": JSON.stringify({
+                                            typeid: firstType,
+                                            sectypeid: secondType
+                                        })
+                                    },
+                                    success: function (data) {
+                                        $('#dataItem').find('ul').empty();
+                                        dataItem = ''
+                                        $("#dataItem .dropdown-text").html('选择基础数据项').attr('data-value', dataItem);
+                                        $.each(data, function (id, item) {
+                                            if (item.ItemText != null) {
+                                                var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                                                $('#dataItem').find('ul').append(row);
+                                            }
+                                        });
+                                        //基础数据项选中，生成查询条件
+                                        $("#dataItem .dropdown-menu li").click(function () {
+                                            var text = $(this).find('a').html();
+                                            dataItem = $(this).find('a').attr('data-value');
+                                            $("#dataItem .dropdown-text").html(text).attr('data-value', dataItem);
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            $('#gridTable').jqGrid('setGridParam', {
+                url: 'GetStandardDataMonthAnalysisList',
+                postData: {
+                    "queryJson": JSON.stringify({
+                        keyword: $("#txt_Keyword").val(),
+                        jxbm: jxbm,
+                        yd: yd,
+                        firstType: firstType,
+                        secType: secondType
+                    })
+                },
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //加载分析列表
+    function GetTableGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "GetStandardDataMonthAnalysisList",
+            postData: {
+                "queryJson": JSON.stringify({
+                    jxbm: jxbm
+                })
+            },
+            datatype: "json",
+            height: $(window).height() - 143.5,
+            autowidth: true,
+            colModel: [
+                { label: "编号", name: "JCSJBM", index: "JCSJBM", hidden: true },
+                { label: "基础数据名称", name: "JCSJMC", index: "JCSJMC", width: "300" },
+                { label: "年度绩效编码", name: "JXBM", index: "JXBM", hidden: true },
+                { label: "年度", name: "ND", index: "ND", hidden: true },
+                { label: "月度", name: "YD", index: "YD", align: "center", width: "60" },
+                { label: "值", name: "JCSJZ", index: "JCSJZ", align: "center" }
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#tablePager",
+            sortname: 'YD',
+            sortorder: 'asc',
+            rownumbers: true,
+            onSelectRow: function () {
+                nd = $("#" + this.id).jqGridRowValue("ND");
+                chartTitle = $("#" + this.id).jqGridRowValue("JCSJMC");
+                $.ajax({
+                    url: 'GetStandardDataMonthAnalysisList?rows=30&page=1&sidx=YD&sord=asc' + '&queryJson=' + JSON.stringify({
+                        jcsjbm: $("#" + this.id).jqGridRowValue("JCSJBM"),
+                        jxbm: $("#" + this.id).jqGridRowValue("JXBM")
+                    }),
+                    success: function (res) {
+                        for (var i = 0; i < 12; i++) {
+                            chartValues[i] = 0;
+                        }
+                        res = JSON.parse(res);
+                        $(res.rows).each(function () {
+                            chartValues[this.YD - 1] = this.JCSJZ;
+                        });
+                        Canvas();
+                    }
+                })
+            },
+            loadComplete: function (data) {
+                $("#" + this.id).jqGrid('setSelection', 1, true);
+                for (var i = 0; i < 12; i++) {
+                    chartValues[i] = 0;
+                }
+                if (dataItem != '') {
+                    loadChart = false;
+                    $(data.rows).each(function () {
+                        chartValues[this.YD - 1] = this.JCSJZ;
+                    })
+                }
+                Canvas()
+            }
+        });
+    }
+
+    //柱状图
+    function Canvas() {
+        $('#chart_year').html(nd + "年");
+        $('#chart_title').html(chartTitle);
+
+        var lineChartData = {
+            labels: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "8月", "10月", "11月", "12月"],
+            datasets: [
+                {
+                    fillColor: "#578ebe",
+                    data: chartValues
+                }
+            ]
+        }
+        chartDivId = "Canvas";
+        if (!!(document.getElementById(chartDivId))) {
+            document.getElementById(chartDivId).remove();
+        }
+        var cdom = document.createElement("canvas");
+        cdom.setAttribute("id", chartDivId);
+        cdom.style.setProperty("width", "100%")
+        cdom.style.setProperty("height", "230px")
+        document.getElementById("panel-body").appendChild(cdom);
+        var canvas = document.getElementById(chartDivId);
+        var ctx = canvas.getContext("2d");
+        window.myLine = new Chart(ctx).Bar(lineChartData, {
+            bezierCurve: false,
+
+        });
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="month" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择月度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="FirstKind" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择一级分类</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="SecondKind" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择二级分类</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入基础数据项" style="width: 200px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="gridPanel" style="float:left; width: 49%; padding-right: 0.8%;">
+            <table id="gridTable"></table>
+            <div id="tablePager"></div>
+        </div>
+        <div style="float: left; width: 50.2%;">
+            <div style="height: 290px; border: 1px solid #e6e6e6; background-color: #fff;">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><i class="fa fa-bar-chart fa-lg"></i><label id="chart_year"></label>-<label id="chart_title"></label></div>
+                    <div class="panel-body" id="panel-body">
+                        <canvas id="Canvas" style="height: 230px; width: 100%;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

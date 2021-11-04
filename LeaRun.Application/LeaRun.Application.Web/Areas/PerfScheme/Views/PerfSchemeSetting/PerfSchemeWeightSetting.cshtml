@@ -1,0 +1,365 @@
+﻿@{
+    ViewBag.Title = "绩效方案权重设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    var jxbm = '',
+        fabh = '',
+        level = '';
+    $(function () {
+        InitialPage();
+        GetSchemeType();
+        GetGrid();
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight($(window).height() - 114.5);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载树
+    function GetSchemeType() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false },
+            success: function (data) {
+                jxbm = data[0].ItemValue;
+                $("#Year .dropdown-text").html(data[0].ItemText).attr('data-value', jxbm);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#Year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#Year .dropdown-text").html(text).attr('data-value', jxbm);
+                    //加载绩效基础方案数据
+                    $.SetForm({
+                        url: "../../PerfScheme/PerfSchemeSetting/GetPerfSchemedataBmsJson",
+                        param: { queryJson: JSON.stringify({ jxbm: jxbm }) },
+                        success: function (data) {
+                            fabh = '';
+                            $("#PerfScheme .dropdown-text").html('').attr('data-value', '');
+                            $('#PerfScheme').find('ul').html("");
+                            if (data.length > 0) {
+                                fabh = data[0].ItemValue;
+                                $("#PerfScheme .dropdown-text").html(data[0].ItemText).attr('data-value', fabh);
+                                $.each(data, function (id, item) {
+                                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                                    $('#PerfScheme').find('ul').append(row);
+                                });
+                                //绩效基础方案选中，生成查询条件
+                                $("#PerfScheme .dropdown-menu li").click(function () {
+                                    var text = $(this).find('a').html();
+                                    fabh = $(this).find('a').attr('data-value');
+                                    $("#PerfScheme .dropdown-text").html(text).attr('data-value', fabh);
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+        });
+        //加载绩效基础方案数据
+        $.SetForm({
+            url: "../../PerfScheme/PerfSchemeSetting/GetPerfSchemedataBmsJson",
+            param: { queryJson: JSON.stringify({ jxbm: jxbm }) },
+            success: function (data) {
+                fabh = data[0].ItemValue;
+                $("#PerfScheme .dropdown-text").html(data[0].ItemText).attr('data-value', fabh);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#PerfScheme').find('ul').append(row);
+                });
+                //绩效基础方案选中，生成查询条件
+                $("#PerfScheme .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    fabh = $(this).find('a').attr('data-value');
+                    $("#PerfScheme .dropdown-text").html(text).attr('data-value', fabh);
+                });
+            }
+        });
+        //加载指标级别数据
+        $.SetForm({
+            url: "../../PerfConfig/KpiSetting/GetLevelJson",
+            param: { forSearch: false },
+            success: function (data) {
+                level = data[0].ItemValue;
+                $("#Level .dropdown-text").html(data[0].ItemText).attr('data-value', level);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Level').find('ul').append(row);
+                });
+                //指标级别选中，生成查询条件
+                $("#Level .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Level .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+    var selectedRowIndex = 0;
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetPerfSchemeWeightList",
+            postData: { fabh: fabh, level: level },
+            datatype: "json",
+            height: $(window).height() - 114.5,
+            autowidth: true,
+            colModel: [
+                { label: "年度", name: "SYND", index: "SYND", hidden: true },
+                { label: "方案编号", name: "FABH", index: "FABH", hidden: true },
+                { label: "方案名称", name: "FAMC", index: "FAMC", hidden: true },
+                { label: "一级指标编号", name: "FirstZBBH", index: "FirstZBBH", align: "center", sortable: false },
+                { label: "一级指标名称", name: "FirstZBMC", index: "FirstZBMC", align: "center", sortable: false },
+                //{ label: "一级指标说明", name: "FirstExplain", index: "FirstExplain", align: "center" },
+                { label: "二级指标编号", name: "SecZBBH", index: "SecZBBH", align: "center", sortable: false },
+                { label: "二级指标名称", name: "SecZBMC", index: "SecZBMC", align: "center", sortable: false },
+                //{ label: "二级指标说明", name: "SecExplain", index: "SecExplain", align: "center" },
+                { label: "三级指标编号", name: "ThirdZBBH", index: "ThirdZBBH", align: "center", sortable: false },
+                { label: "三级指标名称", name: "ThirdZBMC", index: "ThirdZBMC", sortable: false, width: "800" },
+                //{ label: "三级指标说明", name: "ThirdExplain", index: "ThirdExplain", align: "center" },
+                {
+                    label: "权重比值", name: "QZBZ", index: "QZBZ", align: "center", sortable: false, editable: true, editrules: { custom: true, custom_func: numberValidate }
+                    //, formatter: 'number', formatoptions: { decimalPlaces: '0' }
+                },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 20,//每页数量，Pagination的字段rows
+            //pager: "#gridPager",
+            sortname: 'FABH',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            rownumbers: true,//是否显示自增序号
+            ondblClickRow: function (rowid, iRow, iCol, e) {
+                $gridTable.jqGrid('saveRow', selectedRowIndex, false, 'clientArray');
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                $gridTable.jqGrid('editRow', rowid);
+                $("#" + selectedRowIndex + " input").css("text-align", "center");
+            },
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                $gridTable.jqGrid('saveRow', selectedRowIndex, false, 'clientArray');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+                if (level == '1') {
+                    $gridTable.showCol(["FirstZBBH", "FirstZBMC"]);
+                    $gridTable.hideCol(["SecZBBH", "SecZBMC"]);
+                    $gridTable.hideCol(["ThirdZBBH", "ThirdZBMC"]);
+                } else if (level == '2') {
+                    $gridTable.showCol(["FirstZBBH", "FirstZBMC"]);
+                    $gridTable.showCol(["SecZBBH", "SecZBMC"]);
+                    $gridTable.hideCol(["ThirdZBBH", "ThirdZBMC"]);
+                } else {
+                    $gridTable.showCol(["FirstZBBH", "FirstZBMC"]);
+                    $gridTable.showCol(["SecZBBH", "SecZBMC"]);
+                    $gridTable.showCol(["ThirdZBBH", "ThirdZBMC"]);
+                }
+                $gridTable.setGridWidth(($('.gridPanel').width()));
+            }
+        });
+        $("#btn_Search").click(function () {
+            level = $("#Level").find('.dropdown-text').attr('data-value');
+            $gridTable.jqGrid('setGridParam', {
+                postData: {
+                    fabh: $("#PerfScheme").find('.dropdown-text').attr('data-value'),
+                    level: $("#Level").find('.dropdown-text').attr('data-value')
+                },
+                //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+    }
+
+    //保存按钮触发事件
+    function btn_save() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid('saveRow', selectedRowIndex, false, 'clientArray');
+        if (sumValidate()) {
+            var list = [];
+            var ids = $gridTable.getDataIDs();
+            for (var i = 0; i < ids.length; i++) {
+                list.push({
+                    'SYND': $gridTable.getCell(ids[i], "SYND"),
+                    'FABH': $gridTable.getCell(ids[i], "FABH"),
+                    'FAMC': $gridTable.getCell(ids[i], "FAMC"),
+                    'FirstZBBH': $gridTable.getCell(ids[i], "FirstZBBH"),
+                    'FirstZBMC': $gridTable.getCell(ids[i], "FirstZBMC"),
+                    //'FirstExplain': $gridTable.getCell(ids[i], "FirstExplain"),
+                    'SecZBBH': $gridTable.getCell(ids[i], "SecZBBH"),
+                    'SecZBMC': $gridTable.getCell(ids[i], "SecZBMC"),
+                    //'SecExplain': $gridTable.getCell(ids[i], "SecExplain"),
+                    'ThirdZBBH': $gridTable.getCell(ids[i], "ThirdZBBH"),
+                    'ThirdZBMC': $gridTable.getCell(ids[i], "ThirdZBMC"),
+                    //'ThirdExplain': $gridTable.getCell(ids[i], "ThirdExplain"),
+                    'QZBZ': $gridTable.getCell(ids[i], "QZBZ")
+                })
+            }
+            $.ConfirmAjax({
+                msg: "请确认是否要保存当前页记录？",
+                url: "../../PerfScheme/PerfSchemeSetting/SavePerfSchemeWeightdata",
+                param: { perfSchemeWeightdataList: JSON.stringify(list) },
+                success: function (data) {
+                    $gridTable.trigger("reloadGrid");
+                }
+            });
+        }
+    }
+
+    //验证用户输入的权重比值
+    function numberValidate(value, colname) {
+        if (typeof (value) == 'number' || isNaN(value)) {
+            dialogMsg('请输入数字！', 0);
+            return [true, ''];
+        }
+        if (value % 1 != 0 || value < 0 || value > 100) {
+            dialogMsg('请输入0到100之间的整型数字！', 0);
+            return [true, ''];
+        }
+        return [true, ''];
+    }
+
+    //验证用户输入的权重比值
+    function beforeSaveValidate(value) {
+        if (typeof (value) == 'number' || isNaN(value)) {
+            dialogMsg('请输入数字！', 0);
+            return false;
+        }
+        if (value % 1 != 0 || value < 0 || value > 100) {
+            dialogMsg('请输入0到100之间的整型数字！', 0);
+            return false;
+        }
+        return true;
+    }
+
+    //验证某一确定指标的下级指标的权重比值的和为100
+    function sumValidate() {
+        var sum = 0;
+        var $gridTable = $("#gridTable");
+        var ids = $gridTable.getDataIDs();
+        if (ids.length > 0) {
+            if (level == '1') {
+                for (var i = 0; i < ids.length; i++) {
+                    var qzbz = $gridTable.getCell(ids[i], "QZBZ");
+                    if (beforeSaveValidate(qzbz)) {
+                        sum += parseInt(qzbz);
+                    } else {
+                        return false;
+                    }
+                }
+                if (sum != 100) {
+                    sum = 0;
+                    dialogMsg('所有一级指标权重和不为100！', 0);
+                    return false;
+                }
+            } else if (level == '2') {
+                var dic = {};
+                for (var i = 0; i < ids.length; i++) {
+                    var firstzbbh = $gridTable.getCell(ids[i], "FirstZBBH");
+                    if (Object.keys(dic).indexOf(firstzbbh) > -1) {
+                        continue;
+                    }
+                    dic[firstzbbh] = sum;
+                    for (var j = 0; j < ids.length; j++) {
+                        var qzbz = $gridTable.getCell(ids[j], "QZBZ");
+                        if (beforeSaveValidate(qzbz)) {
+                            if (firstzbbh == $gridTable.getCell(ids[j], "FirstZBBH")) {
+                                dic[firstzbbh] += parseInt(qzbz);
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                    if (dic[firstzbbh] != 100) {
+                        sum = 0;
+                        dialogMsg('某一级指标下二级指标权重和不为100！', 0);
+                        return false;
+                    }
+                }
+            } else {
+                var dic = {};
+                for (var i = 0; i < ids.length; i++) {
+                    var seczbbh = $gridTable.getCell(ids[i], "SecZBBH");
+                    if (Object.keys(dic).indexOf(seczbbh) > -1) {
+                        continue;
+                    }
+                    dic[seczbbh] = sum;
+                    for (var j = 0; j < ids.length; j++) {
+                        var qzbz = $gridTable.getCell(ids[j], "QZBZ");
+                        if (beforeSaveValidate(qzbz)) {
+                            if (seczbbh == $gridTable.getCell(ids[j], "SecZBBH")) {
+                                dic[seczbbh] += parseInt(qzbz);
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                    if (dic[seczbbh] != 100) {
+                        sum = 0;
+                        dialogMsg('某二级指标下三级指标权重和不为100！', 0);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } else {
+            dialogMsg('当前页没有记录行！', 0);
+            return false;
+        }
+    }
+
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <div id="Year" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="PerfScheme" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择方案名称</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu" style="max-height: 300px; overflow:auto;"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="Level" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择指标级别</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+                <td>
+                    <a id="btn_Save" class="btn btn-primary" onclick="btn_save()">保存</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    @*<div id="gridPager"></div>*@
+</div>

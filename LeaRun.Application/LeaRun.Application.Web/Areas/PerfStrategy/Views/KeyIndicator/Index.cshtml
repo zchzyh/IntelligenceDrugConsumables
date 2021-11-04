@@ -1,0 +1,178 @@
+﻿@{
+    ViewBag.Title = "关键绩效指标";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function() {
+        getYearData();
+        getGridTable();
+        initialPage();
+    });
+
+    //初始化页面
+    function initialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                    resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 135);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+    };
+
+    function getYearData() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: {},
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#year').find('ul').append(row);
+                    });
+       
+                $("#year .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+
+    var selectedRowIndex = 1;
+
+    //加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfStrategy/KeyIndicator/GetPageListJson",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            //autowidth: true,
+            colModel: [
+                { label: "XH", name: "XH", hidden: true },
+                { label: "绩效年度", name: "JXND", index: "JXBM", align: "center", width: "60" },
+                { label: "战略主题", name: "ZTMC", index: "ZTMC", width: "80" },
+                { label: "维度", name: "BSCMC", index: "BSCMC", width: "60" },
+                { label: "关键成功因素", name: "CSFMC", index: "CSFMC", width: "100" },
+                { label: "关键绩效指标", name: "ZBMC", index: "ZBMC", width: "200" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 20, //每页数量，Pagination的字段rows
+            rowList: [20, 50, 100],
+            pager: "#gridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            onSelectRow: function() {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+                resizePage();
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                jxbm: $("#year").find('.dropdown-text').attr('data-value'),
+                zbmc: $("#zbmc").val()
+            }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+    }
+
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '配置-关键绩效指标',
+            url: '/PerfStrategy/KeyIndicator/EditKeyIndicator',
+            width: "1024px",
+            height: "768px",
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("CSFBH");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '修改',
+                url: '/PerfStrategy/KeyIndicator/EditKeyIndicator?keyValue=' + keyValue,
+                width: "600px",
+                height: "300px",
+                callBack: function(iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("CSFBH");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../PerfStrategy/KeyIndicator/DeleteRecord",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择其中一条记录！', 0);
+        }
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <div id="year" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">绩效年度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <input id="zbmc" type="text" class="form-control" placeholder="关键绩效指标" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;配置</a>
+        </div>
+        @*<script>$('.toolbar').authorizeButton()</script>*@
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

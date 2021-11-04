@@ -1,0 +1,299 @@
+﻿@{
+    ViewBag.Title = "数据项分析器设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+    * {
+        box-sizing: content-box;
+    }
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var searchType = 'analyzerCode',
+        jcsjbm = '',
+        analyzerCode = '';
+    $(function () {
+        InitialPage();
+        GetDataGrid();
+        GetAnalyzerGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#dataItemTable').setGridWidth($(window).width() / 2 - 100);
+                $('#analyzerTable').setGridWidth($(window).width() / 2 - 126);
+                $('#dataItemTable').setGridHeight($(window).height() - 143.5);
+                $('#analyzerTable').setGridHeight($(window).height() - 143.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //查询条件
+        $("#queryCondition .dropdown-menu li").click(function () {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            searchType = value;
+            $("#queryCondition .dropdown-text").html(text).attr('data-value', value)
+        });
+        //数据项名称查询事件
+        $("#btn_Search1").click(function () {
+            var searchUrl = 'GetDataItemListJson';
+            $gridTable = $('#dataItemTable');
+            if (searchUrl != '') {
+                $gridTable.jqGrid('setGridParam', {
+                    url: searchUrl,
+                    postData: {
+                        "queryJson": JSON.stringify({
+                            type: "1",
+                            keyword: $("#txt_dataItem").val()
+                        })
+                    },
+                    page: 1
+                }).trigger('reloadGrid');
+                jcsjbm = '';
+                analyzerCode = '';
+            } else {
+                dialogMsg('请选择分析器编码或名称！', 0);
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            var searchUrl = 'GetDataItemAnalyzerListJson';
+            $gridTable = $('#analyzerTable');
+            if (searchUrl != '') {
+                $gridTable.jqGrid('setGridParam', {
+                    url: searchUrl,
+                    postData: {
+                        "queryJson": JSON.stringify({
+                            type: "1",
+                            keyword: $("#txt_Keyword").val()
+                        })
+                    },
+                    page: 1
+                }).trigger('reloadGrid');
+                jcsjbm = '';
+                analyzerCode = '';
+            } else {
+                dialogMsg('请选择分析器编码或名称！', 0);
+            }
+        });
+        //数据项名称查询回车
+        $('#txt_dataItem').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search1').trigger("click");
+            }
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //加载数据项列表
+    function GetDataGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#dataItemTable");
+        $gridTable.jqGrid({
+            url: "GetDataItemListJson",
+            datatype: "json",
+            height: $(window).height() - 143.5,
+            width: $(window).width() / 2 - 113,
+            //autowidth: true,
+            colModel: [
+                { label: "数据项分类", name: "SECTYPENAME", index: "SECTYPENAME", width: "80" },
+                { label: "数据项编码", name: "JCSJBM", index: "JCSJBM", hidden: true },
+                { label: "数据项名称", name: "JCSJMC", index: "JCSJMC" },
+                { label: "分析编码", name: "FXQBM", index: "FXQBM" },
+                {
+                    label: "配置情况", name: "FXQBM", index: "FXQBM", align: "center", width: "60",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == null ? "未配置" : "已配置";
+                    }
+                }
+            ],
+            viewrecords: true,//显示检索记录
+            total: "total",
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#dataItemPager",
+            sortname: 'SECTYPENAME',
+            sortorder: 'asc',
+            rownumbers: true,
+            onSelectRow: function () {
+                jcsjbm = $("#" + this.id).jqGridRowValue("JCSJBM");
+            },
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+    //加载分析器列表
+    function GetAnalyzerGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#analyzerTable");
+        $gridTable.jqGrid({
+            url: "GetDataItemAnalyzerListJson",
+            postData: {
+                "queryJson": JSON.stringify({
+                    type: "1"
+                })
+            },
+            datatype: "json",
+            height: $(window).height() - 143.5,
+            width: $(window).width() / 2 + 67,
+            //autowidth: true,
+            colModel: [
+                { label: "分析编码 ", name: "FXQBM", index: "FXQBM" },
+                { label: "分析名称", name: "FXQMC", index: "FXQMC" },
+                { label: "分析注释", name: "FXQZJ", index: "FXQZJ" },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#analyzerPager",
+            sortname: 'CREATEAT desc,FXQBM',
+            sortorder: 'desc',
+            rownumbers: true,
+            onSelectRow: function () {
+                analyzerCode = $("#" + this.id).jqGridRowValue("FXQBM");
+            },
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: "分析器新增",
+            url: '/PerfConfig/AnalyzerSetting/Analyzer?fxqlx=1',
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //修改
+    function btn_edit() {
+        if (checkedRow(analyzerCode)) {
+            dialogOpen({
+                id: "Form",
+                title: "分析器修改",
+                url: '/PerfConfig/AnalyzerSetting/Analyzer?fxqlx=1&keyValue=' + analyzerCode,
+                width: "500px",
+                height: "400px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        if (analyzerCode) {
+            $.RemoveForm({
+                url: 'DelDataItemAnalyzer',
+                param: { fxqbm: analyzerCode },
+                success: function (data) {
+                    $('#analyzerTable').trigger("reloadGrid");
+                }
+            })
+        } else {
+            dialogMsg('请选择需要删除的编码！', 0);
+        }
+    }
+    //关联
+    function btn_relate() {
+        if (jcsjbm && analyzerCode) {
+            $.SaveForm({
+                url: 'RelateDataItem',
+                param: { jcsjbm: jcsjbm, fxqbm: analyzerCode },
+                success: function (data) {
+                    $("#dataItemTable").jqGrid('setGridParam').trigger('reloadGrid');
+                }
+            });
+        } else {
+            dialogMsg('请选择一个元数据编码和一个分析器编码！', 0);
+        }
+    }
+    //重置
+    function btn_remove() {
+        if (jcsjbm) {
+            $.SaveForm({
+                url: 'RelateDataItem',
+                param: { jcsjbm: jcsjbm, fxqbm: '' },
+                success: function (data) {
+                    $("#dataItemTable").jqGrid('setGridParam').trigger('reloadGrid');
+                }
+            });
+        } else {
+            dialogMsg('请选择一个数据项编码！', 0);
+        }
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <input id="txt_dataItem" type="text" class="form-control" placeholder="请输入数据项名称" style="width: 160px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search1" class="btn btn-primary" style="box-sizing: border-box;"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                        <td style="padding-left: 110px;">
+                            <div id="queryCondition" class="btn-group" style="box-sizing: border-box;">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown" style="box-sizing: border-box;" data-value="analyzerCode">分析器编码</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="box-sizing: border-box;"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-value="analyzerCode">分析器编码</a></li>
+                                    <li><a data-value="analyzerName">分析器名称</a></li>
+                                    @*<li><a data-value="dataItem">数据项名称</a></li>*@
+                                    @*<li><a data-value="config">配置情况</a></li>*@
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 160px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary" style="box-sizing: border-box;"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                    <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                    <a id="lr-active" class="btn btn-default" onclick="btn_relate()"><i class="fa fa-refresh"></i>&nbsp;关联</a>
+                    <a id="lr-active" class="btn btn-default" onclick="btn_remove()"><i class="fa fa-refresh"></i>&nbsp;取消关联</a>
+                    <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                </div>
+            </div>
+        </div>
+        <div class="gridPanel">
+            <div style="float:left; padding-right: 10px; overflow-x:auto;">
+                <table id="dataItemTable"></table>
+                <div id="dataItemPager"></div>
+            </div>
+            <div style="float:left; overflow-x:auto;">
+                <table id="analyzerTable"></table>
+                <div id="analyzerPager"></div>
+            </div>
+        </div>
+    </div>
+</div>

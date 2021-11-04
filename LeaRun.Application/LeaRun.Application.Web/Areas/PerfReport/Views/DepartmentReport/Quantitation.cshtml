@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "定量等级报告";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+    .report-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+        .report-title label {
+            font-size: 18px;
+        }
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var jxbm = '',
+        unitcode = ''
+    $(function () {
+        InitialPage();
+        GetGridTale();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                resizePage();// $('#gridTable').setGridHeight($(window).height() - 163.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: {},
+            success: function (data) {
+                jxbm = data[1].ItemValue;
+                $("#year .dropdown-text").html(data[1].ItemText).attr('data-value', jxbm);
+                $("#title-year").html(data[1].ItemText);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', jxbm);
+                    $("#title-year").html(text);
+                });
+            }
+        });
+        // 加载科室数据
+        $.SetForm({
+            url: "GetDepartmentsJson",
+            param: { jxbm: jxbm, includeAll: true},
+            success: function (data) {
+                unitcode = data[0].ItemValue;
+                $("#unit .dropdown-text").html(data[0].ItemText).attr('data-value', unitcode);
+                $("#title-dept").html(data[0].ItemText);
+                $.each(data, function (id, item) {
+                    if (item.ItemText != null) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#unit').find('ul').append(row);
+                    }
+                });
+                //科室选中，生成查询条件
+                $("#unit .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    unitcode = $(this).find('a').attr('data-value');
+                    $("#unit .dropdown-text").html(text).attr('data-value', unitcode);
+                    $("#title-dept").html(text)
+                });
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            $('#gridTable').jqGrid('setGridParam', {
+                url: 'GetQuantitativeReportList',
+                postData: {
+                    "queryJson": JSON.stringify({
+                        jxbm: jxbm,
+                        deptcode: unitcode
+                    })
+                },
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+
+    //加载分析列表
+    function GetGridTale() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "GetQuantitativeReportList",
+            postData: {
+                "queryJson": JSON.stringify({
+                    jxbm: jxbm,
+                    deptcode: unitcode
+                })
+            },
+            datatype: "json",
+            height: $(window).height() - 163.5,
+            //width: $(window).width() / 2 - 23,
+            autowidth: true,
+            colModel: [
+                { label: "编号", name: "XH", index: "XH", hidden: true },
+                { label: "年度", name: "Year", index: "Year", width: "50", align: "center" },
+                { label: "科室", name: "OfficeName", index: "OfficeName", width: "70", align: "center" },
+                { label: "战略主题", name: "ZTMC", index: "ZTMC", align: "center", width: "100" },
+                { label: "维度", name: "BSCMC", index: "BSCMC", width: "100", align: "center" },
+                { label: "关键成功因素", name: "CSFMC", index: "CSFMC", width: "100" },
+                { label: "关键绩效指标", name: "KPIMC", index: "KPIMC" },
+                { label: "目标值", name: "KPIMBZ", index: "KPIMBZ", align: "center", width: "80" },
+                { label: "实际完成值", name: "KPISJZ", index: "KPISJZ", align: "center", width: "80" },
+                { label: "得分", name: "KPILHF", index: "KPILHF", align: "center", width: "80" },
+                { label: "等级判定", name: "KPIDJ", index: "KPIDJ", align: "center", width: "50" }
+            ],
+            rownumbers: true,
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'XH',
+            sortorder: 'asc'
+        });
+    }
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 160);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 1));
+    };
+
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="unit" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择科室</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu" style="max-height: 300px; overflow:auto;"></ul>
+                            </div>
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="report-title"><label id="title-year"></label>年<label id="title-dept"></label>绩效考核方案</div>
+        <div class="gridPanel">
+            <table id="gridTable"></table>
+            <div id="gridPager"></div>
+        </div>
+    </div>
+</div>
+

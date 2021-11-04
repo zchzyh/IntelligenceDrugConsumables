@@ -1,0 +1,236 @@
+﻿@{
+    ViewBag.Title = "采集表预览";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<!--jqgrid表格组件start-->
+<link href="~/Content/scripts/plugins/jqgrid/jqgrid.css" rel="stylesheet"/>
+<script src="~/Content/scripts/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="~/Content/scripts/plugins/jqgrid/jqgrid.min.js"></script>
+<!--表格组件end-->
+
+<style>
+    .form td.formValue { padding-left: 40px; }
+
+    .ui-select-option-content { max-height: !important 200px; }
+
+    .ui-jqgrid tr.jqgrow td { border: 1px solid #ccc; }
+</style>
+
+<script>
+    //var keyValue = request('keyValue');
+    //var canOpt = request('canOpt');
+    var tbBm = request('tbBm');
+    var year = request('year');
+    $(function () {
+        hideDialogButtion();
+        GetGrid();
+    });
+    function hideDialogButtion() {
+        var index = top.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        var $IsdialogClose = top.$("#layui-layer" + index).find('.layui-layer-btn').find("#IsdialogClose");
+
+        $IsdialogClose.removeAttr('checked');
+        top.$("#layui-layer" + index).find('.layui-layer-btn').hide();
+    }
+    //加载表格
+    function GetGrid() {
+        var merge = [];
+        var colModel = [];
+        var groupHeaders = {};
+        var headers = [];
+        $.ajax({
+            url: "/CollectionManage/TableRowColManage/GetHeadersJson",
+            data: { year: year, tableNo: tbBm },
+            type: "Get",
+            async: false,
+            success: function (data) {
+                headers = JSON.parse(data);
+            }
+        });
+        colModel.push({ label: "行编码", name: "HCODE", index: "HCODE", hidden: true });
+        if (headers && headers.length > 0) {
+            var headerRow = headers[0].LMC.split('|').length;
+            for (var i = 0; i < headers.length; i++) {
+                var strs = headers[i].LMC.split('|');
+                colModel.push({
+                    label: strs[headerRow - 1], name: headers[i].LCODE ? headers[i].LCODE : ("col" + (i + 1)), index: headers[i].LBM, align: "center",
+                    editable: headers[i].EDITABLE == "1", width: headers[i].AUTOWIDTH == "1" ? "" : headers[i].WIDTH,
+                    sortable: false,
+                    //hidden: headers[i].VISIBLE != "1"
+                });
+                for (var j = headerRow - 2; j >= 0; j--) {
+                    if (Object.keys(groupHeaders).indexOf(j.toString()) < 0) {
+                        groupHeaders[j] = {};
+                    }
+                    if (Object.keys(groupHeaders[j]).indexOf(strs[j]) < 0) {
+                        groupHeaders[j][strs[j]] = { startColumnName: headers[i].LCODE ? headers[i].LCODE : "col1", numberOfColumns: 1, titleText: strs[j] };
+                    } else {
+                        groupHeaders[j][strs[j]].numberOfColumns++;
+                    }
+                }
+            }
+            var $gridTable = $("#gridTable");
+            $gridTable.jqGrid({
+                url: "../../CollectionManage/TableRowColManage/GetListJson",
+                datatype: "json",
+                postData: {
+                    year: year,
+                    tableNo: tbBm
+                },
+                height: 520,
+                sortable: false,
+                autowidth: true,
+                //colNames: colNames,//不会加到label中
+                colModel: colModel,
+                viewrecords: true,//显示检索记录
+                rowNum: 10000,
+                rowList: [30, 50, 100],
+                rownumbers: true,
+                //pager: "#gridPager",
+                sortname: 'XH',//排序字段，Pagination的字段sidx，分页必须传
+                //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+                ondblClickRow: function (rowid, iRow, iCol, e) {
+                    if (canOpt == "true") {
+                        $gridTable.jqGrid('editRow', rowid);
+                        $("#" + rowid + " input").css("text-align", "center");
+                    }
+                },
+                beforeSelectRow: function (rowid, e) {
+                    return false;
+                },
+                gridComplete: function () {
+                    //表头有多少行，首列就跨多少行
+                    var rowspanlen = $("th").parent().siblings("tr").length;
+                    $("#gridTable_rn").attr("rowspan", rowspanlen);
+                    //表头合并左右单元格
+                    var rowheaders = $("th").parent().siblings("tr");
+                    for (var i = 1; i < rowheaders.length; i++) {//不算第一行，因为是空的
+                        var colheaders = rowheaders.eq(i).children("th");
+                        for (var j = colheaders.length - 1; j > 0; j--) {
+                            var curcol = colheaders.eq(j);
+                            var precol = colheaders.eq(j - 1);
+                            if (curcol.children("div").length > 0) {
+                                if (curcol.children("div").text() == precol.children("div").text()) {
+                                    precol.attr("colspan", (curcol.attr("colspan") ? curcol.attr("colspan") : 1) + (precol.attr("colspan") ? precol.attr("colspan") : 1));
+                                    curcol.css("display", "none");
+                                }
+                            } else {
+                                if (curcol.text() == precol.text()) {
+                                    precol.attr("colspan", curcol.attr("colspan") ? curcol.attr("colspan") : 1 + (precol.attr("colspan") ? precol.attr("colspan") : 1));
+                                    curcol.css("display", "none");
+                                }
+                            }
+                        }
+                    }
+                    //表头合并上下单元格
+                    for (var i = rowheaders.length - 1; i > 1; i--) {//不算第一行，因为是空的；并从下一行开始
+                        var colheaders = rowheaders.eq(i).children("th");
+                        var preheaders = rowheaders.eq(i - 1).children("th");
+                        var offset = 0;//左右合并时产生的偏移量
+                        if (rowheaders.eq(i - 1).children("#gridTable_rn").length > 0) {
+                            offset -= 1;
+                        }
+                        for (var j = 0; j < colheaders.length; j++) {
+                            if (colheaders.eq(j).css("display") == "none") {
+                                offset += 1;
+                                continue;
+                            }
+                            var precol = preheaders.eq(j - offset);
+                            while (precol.css("display") == "none") {
+                                offset -= 1;
+                                precol = preheaders.eq(j - offset);
+                            }
+                            var curcol = colheaders.eq(j);
+                            if (precol.length == 1) {
+                                if (curcol.children("div").length > 0) {
+                                    if (curcol.children("div").text() == precol.text()) {
+                                        precol.attr("rowspan", (curcol.attr("rowspan") ? curcol.attr("rowspan") : 1) + (precol.attr("rowspan") ? precol.attr("rowspan") : 1));
+                                        curcol.css("display", "none");
+                                    }
+                                } else {
+                                    if (curcol.text() == precol.text()) {
+                                        precol.attr("rowspan", (curcol.attr("rowspan") ? curcol.attr("rowspan") : 1) + (precol.attr("rowspan") ? precol.attr("rowspan") : 1));
+                                        curcol.css("display", "none");
+                                    }
+                                }
+                                var prespan = precol.attr("colspan");
+                                var curspan = curcol.attr("colspan");
+                                offset += (prespan ? prespan : 1) - (curspan ? curspan : 1);
+                            }
+                        }
+                    }
+
+                    //表内容合并上下单元格
+                    var rowJson = $("#gridTable").jqGrid('getRowData', 1);
+                    var cellNames = Object.keys(rowJson);
+                    for (var cell in rowJson) {
+                        if (cell.indexOf("col") > -1) {
+                            if (headers[(cellNames.indexOf(cell) - 1)].ISMERGE == "1") {
+                                MergerRowspan("gridTable", cell, cellNames.indexOf(cell));
+                            }
+                        }
+                    }
+                },
+                loadComplete: function() {
+                    debugger;
+                    window.setTimeout(function() {
+                            hideDataEmptyPrompt($("#gridTable"));
+                        },
+                       50);
+                
+                }
+            });
+            for (var i = 0; i < headerRow - 1; i++) {
+                var groups = [];
+                for (var key in groupHeaders[i]) {
+                    groups.push(groupHeaders[i][key]);
+                }
+                $gridTable.jqGrid('setGroupHeaders', {
+                    useColSpanStyle: true,
+                    groupHeaders: groups
+                });
+            }
+        } else {
+            dialogMsg("请先配置行列", 0);
+        }
+    }
+    function MergerRowspan(gridName, CellName, CellInd) {
+        //得到显示到界面的id集合
+        var mya = $("#" + gridName + "").getDataIDs();
+        //当前显示多少条
+        var length = mya.length;
+        for (var i = 0; i < length; i++) {
+            //从上到下获取一条信息
+            var before = $("#" + gridName + "").jqGrid('getRowData', mya[i]);
+            //定义合并行数
+            var rowSpanTaxCount = 1;
+            for (j = i + 1; j <= length; j++) {
+                //和上边的信息对比 如果值一样就合并行数+1 然后设置rowspan 让当前单元格隐藏
+                var end = $("#" + gridName + "").jqGrid('getRowData', mya[j]);
+                if (before[CellName] == end[CellName]) {
+                    rowSpanTaxCount++;
+                    $("#" + gridName + "").setCell(mya[j], CellName, '', { display: 'none' });
+                } else {
+                    rowSpanTaxCount = 1;
+                    break;
+                }
+                $("#" + mya[i] + " td:nth-child(" + (CellInd + 2) + ")").attr("rowspan", rowSpanTaxCount);
+            }
+        }
+    }
+
+    function hideDataEmptyPrompt(gridTable) {
+        var tid = gridTable.attr("id");
+        var ids = gridTable.jqGrid('getDataIDs');
+        if (ids.length < 1) {
+            $("#gview_" + tid).find('.unwritten').hide();
+        }
+    }
+</script>
+
+<div class="center-Panel">
+    <div class="gridPanel">
+        <table id="gridTable"></table>
+        <div id="gridPager"></div>
+    </div>
+</div>

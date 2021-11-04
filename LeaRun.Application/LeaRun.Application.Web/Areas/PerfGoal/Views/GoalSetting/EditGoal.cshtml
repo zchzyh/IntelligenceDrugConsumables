@@ -1,0 +1,85 @@
+﻿@{
+    ViewBag.Title = "目标值设置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfGoal/GoalSetting/GetGoalJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                }
+            });
+        }
+    }
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        $.SaveForm({
+            url: "../../PerfGoal/GoalSetting/SaveGoal",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">序号</th>
+            <td class="formValue">
+                <input id="XH" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr style="display:none">
+            <th class="formTitle">机构方案编号</th>
+            <td class="formValue">
+                <input id="JGFABH" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">合格目标值<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="HGMBZ" type="text" class="form-control" placeholder="请输入合理目标值" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">优秀目标值<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="YXMBZ" type="text" class="form-control" placeholder="请输入优秀目标值" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">标杆值<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="BGMBZ" type="text" class="form-control" placeholder="请输入标杆值" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+    </table>
+</div>

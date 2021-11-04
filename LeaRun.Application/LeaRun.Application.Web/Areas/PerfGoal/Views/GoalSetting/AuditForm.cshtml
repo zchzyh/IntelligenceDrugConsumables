@@ -1,0 +1,97 @@
+﻿@{
+    ViewBag.Title = "目标值审核";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValues = request('keyValues');
+    $(function () {
+        initControl();
+        initBtnClick();
+    });
+    //初始化控件
+    function initControl() {
+        //获取表单
+        if (!!keyValues) {
+            $.SetForm({
+                url: "../../PerfGoal/GoalSetting/GetAuditJson",
+                param: { keyValues: keyValues },
+                success: function (data) {
+                    if (data) {
+                        $("#form1").SetWebControls(data);
+                        if (data.STATUS == 2) {
+                            $("#btn_refuse").css("display", "none");
+                        } else if (data.STATUS == 1) {
+                            $("#btn_agree").css("display", "none");
+                        } else if (data.STATUS == 0) {
+                            $("#btn_cancel").css("display", "none");
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    //初始化按钮点击事件
+    function initBtnClick() {
+        $("#btn_agree").click(function () {
+            AcceptClick(1);
+        });
+        $("#btn_refuse").click(function () {
+            AcceptClick(2);
+        });
+        $("#btn_cancel").click(function () {
+            //dialogClose();
+            AcceptClick(0);
+        });
+    }
+
+    //保存表单
+    function AcceptClick(flag) {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        $.SaveForm({
+            url: "../../PerfGoal/GoalSetting/AuditGoal",
+            param: { keyValues: keyValues, REMARK: $("#REMARK").val(), STATUS: flag },
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">绩效方案编码</th>
+            <td class="formValue">
+                <input id="JGFABH" type="text" class="form-control" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle" style="text-align: left;padding-left: 40px;">备注<font style="position:relative;padding-left: 5px;" face="宋体">*</font></th>
+        </tr>
+        <tr>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 100px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="form-button">
+    <a id="btn_agree" class="btn btn-success">同意</a>
+    <a id="btn_refuse" class="btn" style="background-color:#cb3434;color:#fff;">拒绝</a>
+    <a id="btn_cancel" class="btn btn-default">取消审核</a>
+</div>

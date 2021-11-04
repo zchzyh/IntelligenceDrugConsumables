@@ -1,0 +1,257 @@
+﻿@{
+    ViewBag.Title = "科室部门绩效方案设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    var jxbm = '';
+    $(function () {
+        InitialPage();
+        GetSchemeType();
+        GetGrid();
+        
+    });
+
+
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight($(window).height() - 136.5);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+
+    //加载树
+    function GetSchemeType() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false},
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#Year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Year .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+
+
+     
+    }
+
+    var selectedRowIndex = 0;
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetDepSchemeListJson",
+            datatype: "json",
+            
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "方案编号", name: "JGFABH", index: "JGFABH", align: "center", width: "50" },
+                { label: "绩效编码", name: "JXBM", hidden: true },
+                { label: "对象方案名称", name: "JGFAMC", index: "JGFAMC" },
+                { label: "绑定科室", name: "JGBM", hidden: true },
+                { label: "适用年度", name: "JXND", index: "JXND", align: "center" },
+                { label: "基础绩效方案", name: "FAMC", index: "FAMC" },
+                //{ label: "适用对象", name: "SYDX", index: "SYDX" ,
+                {
+                    label: "配置情况", name: "STATUS", index: "STATUS", align: "center", width: "50",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "已配置" : "未配置";
+                    }
+
+
+                },
+               {
+                    label: "操作", name: "CZ", index: "CZ", align: "center", sortable: false,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return "<span class='font-blue' style='cursor:pointer;'>查看</span>";
+                    }
+                },
+               ],
+            viewrecords: true,//显示检索记录
+            rowNum: 200,//每页数量，Pagination的字段rows
+            rowList: [20, 50, 100],
+            //rownumbers: true,//是否显示自增序号
+            pager: "#gridPager",
+            sortname: 'JGFABH',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            gridview: true,
+            //multiselect: true,//行头复选框
+
+            onSelectRow: function (rowid, status) {
+                if (!status)
+                    selectedRows.splice(selectedRows.indexOf(rowid), 1);
+                else
+                    selectedRows.push(rowid);
+            },
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                if (cellcontent.indexOf("查看") > -1)
+                    btn_detail(rowid);
+                else if (iCol == 11)
+                    btn_edit(rowid);
+            },
+            gridComplete: function () {
+                selectedRows = [];
+
+            }
+        });
+        //查询按钮触发
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                jxbm: $("#Year").find('.dropdown-text').attr('data-value'),
+                keyword: $("#txt_Keyword").val(),
+            };
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                 //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+      
+
+    }
+     //查看
+    function btn_detail(rowid) {
+        var jgfabh = $("#gridTable").getRowData(rowid)["JGFABH"];
+        var jxbm = $("#gridTable").getRowData(rowid)["JXBM"];
+        var officeNo = $("#gridTable").getRowData(rowid)["JGBM"];
+        if (checkedRow(jgfabh) && checkedRow(jxbm) ) {
+            dialogOpen({
+                id: "Form",
+                title: '详情',
+                url: '/PerfScheme/PerfSchemeSetting/DepSchemeZB?jgfabh=' + jgfabh + '&jxbm=' + jxbm+ '&officeNo=' + officeNo,
+                width: "1100px",
+                height: "550px",
+                btn: null
+            });
+        }
+    }
+ 
+
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '新增-科室方案配置',
+            url: '/PerfScheme/PerfSchemeSetting/EditDepSchemeSettingTable',
+            width: "500px",
+            height: "450px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    }
+
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("JGFABH");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑科室绩效方案',
+                url: '/PerfScheme/PerfSchemeSetting/EditDepSchemeSettingTable?keyValue=' + keyValue,
+                width: "500px",
+                height: "450px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("JGFABH");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "/PerfScheme/PerfSchemeSetting/DelDepPerfScheme",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择需要删除的科室绩效方案！', 0);
+        }
+    }
+
+   
+
+
+
+    //科室绑定：将方案和科室绑定起来
+    //function saveData() {
+    //    var tablesIds = String($("#itemTree").getCheckedNodes());
+    //    if (tablesIds === "") {
+    //        dialogAlert("请选择科室");
+    //        return;
+    //    }
+
+    //    var postData = {
+    //        year: $("#gridTable").jqGridRowValue("JXBM"),
+    //        fabh: $("#gridTable").jqGridRowValue("FABH"),
+    //        jgfamc: $("#gridTable").jqGridRowValue("FAMC"),
+    //        tableIds: tablesIds
+    //    }
+
+    //    $.SaveForm({
+    //        url: "../../PerfScheme/PerfSchemeSetting/SaveSchemeDep",
+    //        param: postData,
+    //        loading: "正在保存数据...",
+    //        success: function () {
+    //            $.currentIframe().$("#gridTable").trigger("reloadGrid");
+    //        }
+    //    });
+    //}
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel" style="float:left; width: 100%;">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="Year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入对象方案名称" style="width: 200px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                    <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                    <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                </div>
+                <script>$('.toolbar').authorizeButton()</script>
+            </div>
+
+        </div>
+        <div class="gridPanel">
+            <table id="gridTable"></table>
+            <div id="tablePager"></div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,353 @@
+﻿@{
+    ViewBag.Title = "我的采集任务";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function () {
+        InitialPage();
+        GetSchemeType();
+        GetGrid();
+        $('#CJBMC').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    });
+    var gridHeight = $(window).height() - 140;
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight(gridHeight);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载树
+    function GetSchemeType() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: {},
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#Year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Year .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+        //加载月度数据
+        $.SetForm({
+            url: "../../CollectionManage/DataCorrect/GetMonthsJson",
+            param: { forSearch: true },
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Month').find('ul').append(row);
+                });
+                $("#Month .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Month .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+        $.SetForm({
+            url: "../../CollectionManage/TaskMag/GetCollectJson",
+            param: { forSearch: true },
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#CelStatus').find('ul').append(row);
+                });
+                $("#CelStatus .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#CelStatus .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+        $.SetForm({
+            url: "../../CollectionManage/TaskMag/GetApplyJson",
+            param: { forSearch: true },
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#ApplyStatus').find('ul').append(row);
+                });
+                $("#ApplyStatus .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#ApplyStatus .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+        $.SetForm({
+            url: "../../CollectionManage/TaskMag/GetAuditJson",
+            param: { forSearch: true },
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#AuditStatus').find('ul').append(row);
+                });
+                $("#AuditStatus .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#AuditStatus .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+    var selectedRows = [];
+    var curOpt = "";
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TaskMag/GetTaskListJson",
+            datatype: "json",
+            height: gridHeight,
+            autowidth: true,
+            colModel: [
+                { label: "序号", name: "XH", hidden: true },
+                { label: "任务编号", name: "RWBH", hidden: true },
+                { label: "采集表编码", name: "CJBBM", hidden: true },
+                { label: "采集任务内容", name: "CJBQM", index: "CJBQM", width: "200" },
+                { label: "采集频率", name: "CJPLNAME", index: "CJPLNAME", align: "center", width: "70" },
+                { label: "部门", name: "OFFICENAME", index: "OFFICENAME", width: "100" },
+                { label: "年度", name: "ND", index: "ND", align: "center", width: "60" },
+                {
+                    label: "月度", name: "YD", index: "YD", align: "center", width: "50",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue + "月";
+                    }
+                },
+                {
+                    label: "任务开始时间", name: "KSSJ", index: "KSSJ", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue.substring(0, cellvalue.indexOf(' '));
+                    }
+                },
+                {
+                    label: "任务截止时间", name: "JZSJ", index: "JZSJ", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue.substring(0, cellvalue.indexOf(' '));
+                    }
+                },
+                { label: "任务人", name: "NAME", index: "NAME", width: "60" },
+                {
+                    label: "采集状态", name: "RWCD", index: "RWCD", align: "center", width: "70",
+                    formatter: function (cellvalue, options, rowObject) {
+                        switch (cellvalue) {
+                            case "1":
+                                return "<span style='font-weight: 600;'  class='font-green'>已采集</span>";
+                            case "2":
+                                return "<span style='font-weight: 600;'  class='font-orange'>采集中</span>";
+                            default:
+                                return "<span style='font-weight: 600;'  class='font-red'>未采集</span>";
+                        }
+                    }
+                },
+                {
+                    label: "申请状态", name: "SQZT", index: "SQZT", align: "center", width: "70",
+                    formatter: function (cellvalue, options, rowObject) {
+                        switch (cellvalue) {
+                            case "1":
+                                return "<span style='font-weight: 600;'  class='font-green'>已申请</span>";
+                            case "2":
+                                return "<span style='font-weight: 600;'  class='font-red'>已退回</span>";
+                            default:
+                                return "<span style='font-weight: 600;'  class='font-orange'>未申请</span>";
+                        }
+                    }
+                },
+                {
+                    label: "审核状态", name: "SHZT", index: "SHZT", align: "center", width: "70",
+                    formatter: function (cellvalue, options, rowObject) {
+                        switch (cellvalue) {
+                            case "1":
+                                return "<span  style='font-weight: 600;' class='font-green'>已通过</span>";
+                            case "2":
+                                return "<span  style='font-weight: 600;' class='font-red'>未通过</span>";
+                            default:
+                                return "<span style='font-weight: 600;'  class='font-orange'>未审核</span>";
+                        }
+                    }
+                },
+                {
+                    label: "操作", name: "ZT", index: "ZT", align: "center", sortable: false, width: "80",
+                    formatter: function (cellvalue, options, rowObject) {
+                        var ret = "";
+                        if (cellvalue[0] != "1" && cellvalue[3] == "1") {
+                            //不是已采集且在采集时间内，可点击采集数据
+                            ret += "<span class='font-blue' style='text-decoration:underline;cursor:pointer;' onclick='javascript: curOpt=" + '"采集"' + "'>采集数据</span></br>";
+                        }
+                        ret += "<span class='font-blue' style='text-decoration:underline;cursor:pointer;' onclick='javascript: curOpt=" + '"查看"' + "'>查看数据</span>";
+                        if (cellvalue[0] != "0" && cellvalue[1] != "1") {
+                            //不是未采集且不是已申请，可点击申请
+                            ret += "</br><span class='font-blue' style='text-decoration:underline;cursor:pointer;' onclick='javascript: curOpt=" + '"申请"' + "'>申请审核</span>"
+                        }
+                        return ret;
+                    }
+                }
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 60, 100],//设置每页数量动态选择
+            rownumbers: true,
+            pager: "#gridPager",
+            sortname: 'ND desc,YD asc',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc。若sortname包含则这个不生效
+            multiselect: true,//行头复选框
+            onSelectAll: function (aRowids, status) {
+                selectedRows = [];
+                if (status)
+                    aRowids.every(function (val, index) {
+                        selectedRows.push(val);
+                        return true;
+                    });
+                //不能直接赋值，因为aRowids是根据界面选择变化的
+                //selectedRows = aRowids;
+            },
+            onSelectRow: function (rowid, status) {
+                if (!status)
+                    selectedRows.splice(selectedRows.indexOf(rowid), 1);
+                else
+                    selectedRows.push(rowid);
+            },
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                if (curOpt == "查看")
+                    btn_detail(rowid);
+                else if (curOpt == "采集")
+                    btn_detail(rowid, true);
+                else if (curOpt == "申请")
+                    btn_apply(rowid);
+                curOpt = "";
+            },
+            gridComplete: function () {
+                selectedRows = [];
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                nd: $("#Year").find('.dropdown-text').attr('data-value'),
+                yd: $("#Month").find('.dropdown-text').attr('data-value'),
+                rwcd: $("#CelStatus").find('.dropdown-text').attr('data-value'),
+                sqzt: $("#ApplyStatus").find('.dropdown-text').attr('data-value'),
+                shzt: $("#AuditStatus").find('.dropdown-text').attr('data-value'),
+                cjbmc: $("#CJBMC").val()
+            }
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                //保证搜索时是第一页，页码切换时不会取此page
+                page: 1
+            }).trigger('reloadGrid');
+        });
+    }
+
+    function btn_detail(rowid, canOpt) {
+        var keyValue = $("#gridTable").getRowData(rowid)["RWBH"];
+        var xh = $("#gridTable").getRowData(rowid)["XH"];
+        var collecting = $("#gridTable").getRowData(rowid)["RWCD"].indexOf("采集中") > -1;
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '详情',
+                url: '/CollectionManage/TaskMag/DetailForm?keyValue=' + keyValue + '&canOpt=' + canOpt + '&collecting=' + collecting + '&xh=' + xh,
+                width: ($(window).width() - 100).toString() + "px",
+                height: canOpt ? "700px" : "650px",
+                btn: null,
+            });
+        }
+    }
+
+    //申请
+    function btn_apply(rowid) {
+        var keyValues = [];
+        if (rowid)
+            keyValues.push({ XH: $("#gridTable").getRowData(rowid)["XH"], RWBH: $("#gridTable").getRowData(rowid)["RWBH"] });
+        else
+            selectedRows.every(function (val, index) {
+                keyValues.push({ XH: $("#gridTable").getRowData(val)["XH"], RWBH: $("#gridTable").getRowData(val)["RWBH"] });
+                return true;
+            });
+        if (keyValues.length > 0) {
+            $.ConfirmAjax({
+                msg: "请确认是否要申请审核？",
+                url: "../../CollectionManage/TaskMag/Apply",
+                param: { keyValues: JSON.stringify(keyValues) },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择需要操作的采集任务！', 0);
+        }
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <div id="Year" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="Month" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择月度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="CelStatus" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择采集状态</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="ApplyStatus" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择申请状态</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="AuditStatus" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择审核状态</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <input id="CJBMC" type="text" class="form-control" placeholder="请输入采集表名称" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-blue"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+                <td style="padding-left: 5px;">
+                    <a class="btn btn-green" onclick="btn_apply()"><i class="fa fa-check-circle"></i>&nbsp;申请审核</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

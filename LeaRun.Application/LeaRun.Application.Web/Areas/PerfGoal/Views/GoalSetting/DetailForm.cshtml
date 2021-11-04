@@ -1,0 +1,116 @@
+﻿@{
+    ViewBag.Title = "目标值审核";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<!--jqgrid表格组件start-->
+<link href="~/Content/scripts/plugins/jqgrid/jqgrid.css" rel="stylesheet" />
+<script src="~/Content/scripts/plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="~/Content/scripts/plugins/jqgrid/jqgrid.min.js"></script>
+<!--表格组件end-->
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var jxbm = request('jxbm');
+    var orgcode = request('orgcode');
+    var jgfabh = request('jgfabh');
+    var firBH = "", secBH = "";
+    $(function () {
+        //加载树
+        $("#itemTree").treeview({
+            height: $(window).height() - 52,
+            //width: '100%',
+            url: "../../PerfConfig/KpiSetting/GetZBTreeJson",
+            param: { jxbm: jxbm },
+            onnodeclick: function (item) {
+                firBH = "";
+                secBH = "";
+                switch (item.Level) {
+                    case 1:
+                        firBH = item.id;
+                        break;
+                    case 2:
+                        firBH = item.parentId;
+                        secBH = item.id;
+                        break;
+                    default:
+                        break;
+                }
+                search_data();
+            }
+        });
+        GetGrid();
+        $("#itemTree").siblings().eq(0).text('部门：@ViewData["orgname"]');
+    });
+    //加载表格
+    function GetGrid() {
+        $("#gridTable").jqGrid({
+            url: "../../PerfGoal/GoalSearch/GetGoalListJson",
+            datatype: "json",
+            postData: {
+                queryJson: JSON.stringify({
+                    jxbm: jxbm,
+                    orgcode: orgcode,
+                    jgfabh: jgfabh,})},
+            height: 420,
+            autowidth: true,
+            colModel: [
+                { label: "序号", name: "XH", hidden: true },
+                { label: "绩效年度", name: "JXND", index: "JXND", align: "center" },
+                { label: "指标名称", name: "ThirdZBMC", index: "ThirdZBMC", width: "380" },
+                { label: "合格目标值", name: "HGMBZ", index: "HGMBZ", align: "center", width: "180" },
+                { label: "优秀目标值", name: "YXMBZ", index: "YXMBZ", align: "center", width: "180" },
+                { label: "优良目标值", name: "YLMBZ", index: "YLMBZ", align: "center", width: "180" },
+                { label: "标杆值", name: "BGMBZ", index: "BGMBZ", align: "center" },
+                { label: "前一年", name: "CKZ1", index: "CKZ1", align: "center" },
+                { label: "前二年", name: "CKZ2", index: "CKZ2", align: "center" },
+                { label: "前三年", name: "CKZ3", index: "CKZ3", align: "center" },
+                //{ label: "优化率", name: "MBYHL", index: "MBYHL", align: "center" },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            rownumbers: true,
+            pager: "#gridPager",
+            sortname: 'XH',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+        });
+    }
+    function search_data() {
+        var queryJson = {
+            jxbm: jxbm,
+            orgcode: orgcode,
+            jgfabh: jgfabh,
+            firstZBBH: firBH,
+            secZBBH: secBH,
+        }
+        $("#gridTable").jqGrid('setGridParam', {
+            postData: { queryJson: JSON.stringify(queryJson) }
+        }).trigger('reloadGrid');
+    };
+</script>
+
+<div class="ui-layout" style="margin: 10px; display: flex; justify-content: space-between;">
+    <div class="ui-layout-west">
+        <div class="west-Panel">
+            <div class="panel-Title"></div>
+            <div id="itemTree"></div>
+        </div>
+    </div>
+    <div class="ui-layout-center" style="width: 860px;margin-left:10px;">
+        <div class="center-Panel">
+            <div class="gridPanel">
+                <table id="gridTable"></table>
+                <div id="gridPager"></div>
+            </div>
+        </div>
+    </div>
+</div>

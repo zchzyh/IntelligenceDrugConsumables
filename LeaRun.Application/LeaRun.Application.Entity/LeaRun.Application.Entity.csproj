@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C10920FE-8C74-4993-A7F4-1DA189DA842C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LeaRun.Application.Entity</RootNamespace>
+    <AssemblyName>LeaRun.Application.Entity</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <SccProjectName>Svn</SccProjectName>
+    <SccLocalPath>Svn</SccLocalPath>
+    <SccAuxPath>Svn</SccAuxPath>
+    <SccProvider>SubversionScc</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Debug\LeaRun.Application.Entity.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccountEntity.cs" />
+    <Compile Include="AuthorizeManage\ModuleFormEntity.cs" />
+    <Compile Include="AuthorizeManage\ModuleFormInstanceEntity.cs" />
+    <Compile Include="AuthorizeManage\ViewModel\AuthorizeUrlModel.cs" />
+    <Compile Include="BaseEntity.cs" />
+    <Compile Include="BaseManage\Base_ModuleEntity.cs" />
+    <Compile Include="BaseManage\studentEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CollectionAnalysis\ViewModel\AuditTaskInspectModel.cs" />
+    <Compile Include="CollectionAnalysis\ViewModel\CollectionTaskInspectModel.cs" />
+    <Compile Include="CollectionManage\BpcSC004Entity.cs" />
+    <Compile Include="CollectionManage\BpcSc001Entity.cs" />
+    <Compile Include="CollectionManage\BpcSc002Entity.cs" />
+    <Compile Include="CollectionManage\BpcSc003Entity.cs" />
+    <Compile Include="CollectionManage\BpcSc006Entity.cs" />
+    <Compile Include="CollectionManage\BpcSm003Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp001Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp002Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp003Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp004Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp005Entity.cs" />
+    <Compile Include="CollectionManage\BpcSp008Entity.cs" />
+    <Compile Include="CollectionManage\ViewModel\ApplyModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\TableRowModel.cs" />
+    <Compile Include="DecimalPrecisionAttribute.cs" />
+    <Compile Include="PerfConfig\BpeEA001Entity.cs" />
+    <Compile Include="PerfConfig\BpeEA002Entity.cs" />
+    <Compile Include="CollectionManage\Ex\BpcSm003EntityEx.cs" />
+    <Compile Include="PerfConfig\BpeEA003Entity.cs" />
+    <Compile Include="PerfReport\BpeRA005Entity.cs" />
+    <Compile Include="PerfReport\Ex\BpeRA003EntityEx.cs" />
+    <Compile Include="PerfReport\Ex\BpeRA002EntityEx.cs" />
+    <Compile Include="PerfReport\Ex\BpeRA001EntityEx.cs" />
+    <Compile Include="PerfReport\ViewModel\FinalAssessmentModel.cs" />
+    <Compile Include="PerfReport\ViewModel\SchemeWeightModel.cs" />
+    <Compile Include="PerfScheme\BpeEA004Entity.cs" />
+    <Compile Include="PerfScheme\BpeEA005Entity.cs" />
+    <Compile Include="PerfScheme\BpePA001Entity.cs" />
+    <Compile Include="PerfScheme\BpePA002Entity.cs" />
+    <Compile Include="PerfScheme\BpePA004Entity.cs" />
+    <Compile Include="PerfScheme\ViewModel\BaseperfSchemesettingModel.cs" />
+    <Compile Include="PerfScheme\ViewModel\DepPerfSchemeSettingModel.cs" />
+    <Compile Include="PerfScheme\ViewModel\DepSchemeZBModel.cs" />
+    <Compile Include="PerfScheme\ViewModel\KpiAll.cs" />
+    <Compile Include="PerfScheme\ViewModel\PerfDeptSchemeAppraisedataModel.cs" />
+    <Compile Include="PerfScheme\ViewModel\PerfSchemeWeightModel.cs" />
+    <Compile Include="PerfScheme\ViewModel\SavePerfDeptSchemeAppraiseModel.cs" />
+    <Compile Include="PerfStrategy\BpeTa003Entity.cs" />
+    <Compile Include="PerfStrategy\BpeVa004Entity.cs" />
+    <Compile Include="CollectionManage\Ex\BpcSc006EntityEx.cs" />
+    <Compile Include="CollectionManage\Ex\BpcSp001EntityEx.cs" />
+    <Compile Include="CollectionManage\ViewModel\MyTableDataModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\MyTableRowModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\TaskInfoModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\UserAuthTableInfoModel.cs" />
+    <Compile Include="CollectionAnalysis\ViewModel\CollectionTaskWarningModel.cs" />
+    <Compile Include="CollectionAnalysis\ViewModel\StandardDataAnalysisModel.cs" />
+    <Compile Include="CollectionAnalysis\ViewModel\YearTaskAnalysisModel.cs" />
+    <Compile Include="CollectionManage\BpcSP006Entity.cs" />
+    <Compile Include="CollectionManage\ViewModel\CoefficientCorrectModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\CollectionCellModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\MyTableHeaderModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\ComboBoxModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\DataCorrectModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\MyTaskAuditModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\MyTaskMagModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\SupplementCorrectModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\ZeroingCorrectModel.cs" />
+    <Compile Include="CollectionManage\ViewModel\RowColSettingModel.cs" />
+    <Compile Include="CustomerManage\CashBalanceEntity.cs" />
+    <Compile Include="CustomerManage\ChanceEntity.cs" />
+    <Compile Include="CustomerManage\ExpensesEntity.cs" />
+    <Compile Include="CustomerManage\InvoiceEntity.cs" />
+    <Compile Include="CustomerManage\ReceivableEntity.cs" />
+    <Compile Include="CustomerManage\TrailRecordEntity.cs" />
+    <Compile Include="CustomerManage\CustomerContactEntity.cs" />
+    <Compile Include="CustomerManage\CustomerEntity.cs" />
+    <Compile Include="CustomerManage\OrderEntity.cs" />
+    <Compile Include="CustomerManage\OrderEntryEntity.cs" />
+    <Compile Include="CustomerManage\ViewModel\ReceivableReportModel.cs" />
+    <Compile Include="DataAnalysis\ViewModel\DataAnalysisModel.cs" />
+    <Compile Include="DemoManage\OfficeRkEntity.cs" />
+    <Compile Include="DemoManage\OfficeRkEntryEntity.cs" />
+    <Compile Include="FlowManage\WFDelegateRecordEntity.cs" />
+    <Compile Include="FlowManage\WFDelegateRuleEntity.cs" />
+    <Compile Include="FlowManage\WFDelegateRuleSchemeInfoEntity.cs" />
+    <Compile Include="FlowManage\WFProcessInstanceEntity.cs" />
+    <Compile Include="FlowManage\WFProcessOperationHistoryEntity.cs" />
+    <Compile Include="FlowManage\WFProcessSchemeEntity.cs" />
+    <Compile Include="FlowManage\WFProcessTransitionHistoryEntity.cs" />
+    <Compile Include="FlowManage\WFSchemeInfoAuthorizeEntity.cs" />
+    <Compile Include="FlowManage\WFSchemeInfoEntity.cs" />
+    <Compile Include="FlowManage\WFSchemeContentEntity.cs" />
+    <Compile Include="FlowManage\WFFrmMainEntity.cs" />
+    <Compile Include="PerfConfig\BpcSM001Entity.cs" />
+    <Compile Include="PerfConfig\BpcSM006Entity.cs" />
+    <Compile Include="PerfConfig\BpcSP007Entity.cs" />
+    <Compile Include="PerfConfig\BpeMA001Entity.cs" />
+    <Compile Include="PerfConfig\BpeSC001Entity.cs" />
+    <Compile Include="PerfConfig\BpeTA001Entity.cs" />
+    <Compile Include="PerfConfig\BpeTA002Entity.cs" />
+    <Compile Include="PerfConfig\BpeTB001Entity.cs" />
+    <Compile Include="PerfConfig\Ex\BpcSM001EntityEx.cs" />
+    <Compile Include="PerfConfig\ViewModel\AssessmentObjectModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\JxQuantitativeIndicatorsModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\MetadataModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\QualitativeIndicatorsModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\QuantitativeIndicatorsModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\StandardDataModel.cs" />
+    <Compile Include="PerfConfig\ViewModel\YearSettingModel.cs" />
+    <Compile Include="PerfGoal\BpePA003Entity.cs" />
+    <Compile Include="PerfGoal\BpeTA004Entity.cs" />
+    <Compile Include="PerfGoal\ViewModel\QuantitativeGoalAuditModel.cs" />
+    <Compile Include="PerfGoal\ViewModel\QuantitativeGoalModel.cs" />
+    <Compile Include="PerfImprove\ViewModel\ComboBoxModel.cs" />
+    <Compile Include="PerfImprove\ViewModel\HorizontalComparisonModel.cs" />
+    <Compile Include="PerfImprove\ViewModel\TargetComparisonModel.cs" />
+    <Compile Include="PerfImprove\ViewModel\VerticalComparisonModel.cs" />
+    <Compile Include="PerfReport\BpeRA001Entity.cs" />
+    <Compile Include="PerfReport\BpeRA002Entity.cs" />
+    <Compile Include="PerfReport\BpeRA003Entity.cs" />
+    <Compile Include="PerfReport\BpeRA004Entity.cs" />
+    <Compile Include="PerfStrategy\BpeVa001Entity.cs" />
+    <Compile Include="PerfStrategy\BpeVa003Entity.cs" />
+    <Compile Include="PerfStrategy\ViewModel\BpeTa002Model.cs" />
+    <Compile Include="PerfStrategy\ViewModel\BpeTa003Model.cs" />
+    <Compile Include="PerfStrategy\ViewModel\BpeVa001Model.cs" />
+    <Compile Include="PerfStrategy\ViewModel\BpeVa003Model.cs" />
+    <Compile Include="PerfStrategy\ViewModel\BpeVa004Model.cs" />
+    <Compile Include="SettingManage\BpcSM002Entity.cs" />
+    <Compile Include="SettingManage\BpeVA002Entity.cs" />
+    <Compile Include="SettingManage\EX\PMR008OffiecesEntityEx.cs" />
+    <Compile Include="SettingManage\EX\PMR009UserEntityEx.cs" />
+    <Compile Include="SettingManage\PMR001MorEntity.cs" />
+    <Compile Include="SettingManage\PMR008OffiecesEntity.cs" />
+    <Compile Include="SettingManage\PMR009UserEntity.cs" />
+    <Compile Include="SettingManage\PMR025UnitEntity.cs" />
+    <Compile Include="SettingManage\PMR005OrgEntity.cs" />
+    <Compile Include="SettingManage\S102VerEntity.cs" />
+    <Compile Include="PublicInfoManage\ScheduleEntity.cs" />
+    <Compile Include="ReportManage\RptTempEntity.cs" />
+    <Compile Include="SettingManage\S101TypeEntity.cs" />
+    <Compile Include="SettingManage\S103CodeEntity.cs" />
+    <Compile Include="SettingManage\PMR002MorDeptEntity.cs" />
+    <Compile Include="SystemManage\CodeRuleEntity.cs" />
+    <Compile Include="SystemManage\CodeRuleFormatEntity.cs" />
+    <Compile Include="SystemManage\CodeRuleSeedEntity.cs" />
+    <Compile Include="PublicInfoManage\FileInfoEntity.cs" />
+    <Compile Include="PublicInfoManage\FileFolderEntity.cs" />
+    <Compile Include="PublicInfoManage\EmailAddresseeEntity.cs" />
+    <Compile Include="PublicInfoManage\EmailCategoryEntity.cs" />
+    <Compile Include="PublicInfoManage\EmailContentEntity.cs" />
+    <Compile Include="MessageManage\IMGroupModel.cs" />
+    <Compile Include="MessageManage\IMReadModel.cs" />
+    <Compile Include="MessageManage\IMReadNumModel.cs" />
+    <Compile Include="MessageManage\IMUserModel.cs" />
+    <Compile Include="MessageManage\IMContentEntity.cs" />
+    <Compile Include="MessageManage\IMGroupEntity.cs" />
+    <Compile Include="MessageManage\IMReadEntity.cs" />
+    <Compile Include="MessageManage\IMUserGroupEntity.cs" />
+    <Compile Include="AuthorizeManage\AuthorizeEntity.cs" />
+    <Compile Include="BaseManage\UserRelationEntity.cs" />
+    <Compile Include="AuthorizeManage\AuthorizeDataEntity.cs" />
+    <Compile Include="PublicInfoManage\NewsEntity.cs" />
+    <Compile Include="SystemManage\DataBaseBackupEntity.cs" />
+    <Compile Include="SystemManage\DataBaseTableFieldEntity.cs" />
+    <Compile Include="SystemManage\DataBaseLinkEntity.cs" />
+    <Compile Include="AuthorizeManage\FilterIPEntity.cs" />
+    <Compile Include="AuthorizeManage\FilterTimeEntity.cs" />
+    <Compile Include="SystemManage\AreaEntity.cs" />
+    <Compile Include="AuthorizeManage\ModuleEntity.cs" />
+    <Compile Include="AuthorizeManage\ModuleButtonEntity.cs" />
+    <Compile Include="AuthorizeManage\ModuleColumnEntity.cs" />
+    <Compile Include="BaseManage\UserEntity.cs" />
+    <Compile Include="BaseManage\DepartmentEntity.cs" />
+    <Compile Include="BaseManage\OrganizeEntity.cs" />
+    <Compile Include="BaseManage\RoleEntity.cs" />
+    <Compile Include="SystemManage\DataItemEntity.cs" />
+    <Compile Include="SystemManage\DataItemDetailEntity.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemManage\LogEntity.cs" />
+    <Compile Include="SystemManage\ViewModel\DataItemModel.cs" />
+    <Compile Include="UserInfoModel.cs" />
+    <Compile Include="WebApp\appUserInfoModel.cs" />
+    <Compile Include="WeChatManage\WeChatAppEntity.cs" />
+    <Compile Include="WeChatManage\WeChatDeptRelationEntity.cs" />
+    <Compile Include="WeChatManage\WeChatAppMenuEntity.cs" />
+    <Compile Include="WeChatManage\WeChatUserRelationEntity.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SettingManage\ViewModel\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LeaRun.Application.Code\LeaRun.Application.Code.csproj">
+      <Project>{9b10db87-130c-41d3-8687-1fac877db74a}</Project>
+      <Name>LeaRun.Application.Code</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

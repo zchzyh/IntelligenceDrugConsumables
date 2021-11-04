@@ -1,0 +1,481 @@
+﻿@{
+    ViewBag.Title = "基础代码管理";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+    * {
+        box-sizing: content-box;
+    }
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var tableType = 'type',
+        typeId = '',
+        versionId = '',
+        codeId = '',
+        active = false;
+    $(function () {
+        InitialPage();
+        GetKindGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#codeKindTable').setGridWidth($(window).width() / 3 - 10);
+                $('#codeVersionTable').setGridWidth($(window).width() / 9 * 2 - 20);
+                $('#codeDetailTable').setGridWidth($(window).width() / 9 * 4 - 30);
+                $('#codeKindTable').setGridHeight($(window).height() - 183.5);
+                $('#codeVersionTable').setGridHeight($(window).height() - 183.5);
+                $('#codeDetailTable').setGridHeight($(window).height() - 183.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //查询条件
+        $("#queryCondition .dropdown-menu li").click(function () {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            tableType = value;
+            $('#titleinfo').html(text);
+            $("#queryCondition .dropdown-text").html(text).attr('data-value', value)
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            var searchUrl = '';
+            var searchType = $("#queryCondition").find('.dropdown-text').attr('data-value');
+            switch (searchType) {
+                case 'type':
+                    searchUrl = 'GetCodeTypeList';
+                    $gridTable = $('#codeKindTable');
+                    break;
+                case 'code':
+                    searchUrl = 'GetCodeList';
+                    $gridTable = $('#codeDetailTable');
+                    break;
+                default:
+                    break;
+            }
+            if (searchUrl != '') {
+                $gridTable.jqGrid('setGridParam', {
+                    url: searchUrl,
+                    postData: {
+                        "queryJson": JSON.stringify({
+                            typeid: typeId,
+                            verid: versionId,
+                            keyword: $("#txt_Keyword").val()
+                        })
+                    },
+                    page: 1
+                }).trigger('reloadGrid');
+            } else {
+                dialogMsg('请选择基础类别或基础编码！', 0);
+            }
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+
+        //切换表格
+        $('#codeType').click(function () {
+            eType = 'type';
+            $('#titleinfo').html('基础类别');
+            $("#queryCondition .dropdown-text").html('基础类别').attr('data-value', tableType);
+        });
+        $('#versionCode').click(function () {
+            tableType = 'version';
+            $('#titleinfo').html('版本号');
+        });
+        $('#codeDetail').click(function () {
+            tableType = 'code';
+            $('#titleinfo').html('基础编码');
+            $("#queryCondition .dropdown-text").html('基础编码').attr('data-value', tableType);
+        });
+    }
+    //加载类别表格
+    function GetKindGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#codeKindTable");
+        $gridTable.jqGrid({
+            url: "/SettingManage/Dictionary/GetCodeTypeList",
+            datatype: "json",
+            height: $(window).height() - 183.5,
+            width: $(window).width() / 3 - 10,
+            //autowidth: true,
+            colModel: [
+                { label: "类别编号", name: "TYPEID", index: "TYPEID", width: 100 },
+                { label: "类别名称", name: "NAME", index: "NAME", width: 100 },
+                {
+                    label: "是否启用", name: "STATUS", index: "STATUS", align: "center", width: 50,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                    }
+                }
+            ],
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#codeKindPager",
+            sortname: 'TYPEID',
+            sortorder: 'asc',
+            rownumbers: true,
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                tableType = 'type';
+                if (iCol == 3) {
+                    typeId = $(e.target).parents('tr').find('td').eq(1).text();
+                    active = $(e.target).attr('class').indexOf('off') > -1;
+                    btn_active();
+                }
+            },
+            onSelectRow: function () {
+                tableType = 'type';
+                $('#titleinfo').html('基础类别');
+                $("#queryCondition .dropdown-text").html('基础类别').attr('data-value', tableType);
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                typeId = $("#" + this.id).jqGridRowValue("TYPEID");
+                active = $("#" + this.id).jqGridRowValue("STATUS").indexOf('off') > -1;
+                if (active) {
+                    $('#lr-active').html($('#lr-active').html().replace('禁用', '启用'))
+                } else {
+                    $('#lr-active').html($('#lr-active').html().replace('启用', '禁用'))
+                }
+                $("#codeVersionTable").jqGrid('setGridParam', {
+                    url: "GetCodeVersionList?typeId=" + typeId,
+                }).trigger('reloadGrid');
+            },
+            gridComplete: function () {
+                //读取第一行对应的版本号数据
+                $("#" + this.id).jqGrid('setSelection', 1, false);
+                typeId = $("#" + this.id).jqGridRowValue("TYPEID");
+                GetVersionGrid();
+                $("#codeVersionTable").jqGrid('setGridParam', {
+                    postData: { typeId: typeId },
+                }).trigger('reloadGrid');
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+    //加载版本号表格
+    function GetVersionGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#codeVersionTable");
+        $gridTable.jqGrid({
+            url: "GetCodeVersionList",
+            postData: { typeId:  typeId },
+            datatype: "json",
+            height: $(window).height() - 183.5,
+            width: $(window).width() / 9 * 2 - 20,
+            //autowidth: true,
+            colModel: [
+                { label: "类别编号", name: "TYPEID", index: "TYPEID", hidden: true },
+                { label: "版本号", name: "VERID", index: "VERID", width: 100 },
+                {
+                    label: "是否启用", name: "STATUS", index: "STATUS", align: "center", width: 50,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                    }
+                }
+            ],
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            //pager: "#codeVersionPager",
+            sortname: 'VERID',
+            sortorder: 'desc',
+            rownumbers: true,
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                tableType = 'version';
+                if (iCol == 3) {
+                    versionId = $(e.target).parents('tr').find('td').eq(2).text();
+                    active = $(e.target).attr('class').indexOf('off') > -1;
+                    btn_active();
+                }
+            },
+            onSelectRow: function () {
+                tableType = 'version';
+                $('#titleinfo').html('版本号');
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                versionId = $("#" + this.id).jqGridRowValue("VERID");
+                active = $("#" + this.id).jqGridRowValue("STATUS").indexOf('off') > -1;
+                if (active) {
+                    $('#lr-active').html($('#lr-active').html().replace('禁用', '启用'))
+                } else {
+                    $('#lr-active').html($('#lr-active').html().replace('启用', '禁用'))
+                }
+                $("#codeDetailTable").jqGrid('setGridParam', {
+                    postData: { "queryJson": '{ "typeid": "' + typeId + '", "verid": "' + versionId + '" }' },
+                }).trigger('reloadGrid');
+            },
+            gridComplete: function () {
+                //加载第一行对应的编码数据
+                $("#" + this.id).jqGrid('setSelection', 1, false);
+                versionId = $("#" + this.id).jqGridRowValue("VERID");
+                GetCodeGrid();
+                $("#codeDetailTable").jqGrid('setGridParam', {
+                    postData: { "queryJson": '{ "typeid": "' + typeId + '", "verid": "' + versionId + '" }' },
+                }).trigger('reloadGrid');
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+    //加载基础代码表格
+    function GetCodeGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#codeDetailTable");
+        $gridTable.jqGrid({
+            url: "GetCodeList",
+            postData: { "queryJson": '{ "typeid": "' + typeId + '", "verid": "' + versionId + '" }' },
+            datatype: "json",
+            height: $(window).height() - 183.5,
+            width: $(window).width() / 9 * 4 - 30,
+            //autowidth: true,
+            colModel: [
+                { label: "类别编号", name: "TYPEID", index: "TYPEID", hidden: true },
+                { label: "版本号", name: "VERID", index: "VERID", hidden: true },
+                { label: "代码", name: "CODE", index: "CODE", width: 50 },
+                { label: "名称", name: "NAME", index: "NAME", width: 100 },
+                { label: "显示顺序", name: "IX", index: "IX", align: "center", width: 60 },
+                {
+                    label: "是否启用", name: "STATUS", index: "STATUS", align: "center", width: 50,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                    }
+                }
+            ],
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#codeDetailPager",
+            sortname: 'IX',
+            sortorder: 'asc',
+            multiselect: true,
+            multiboxonly: true,
+            onSelectAll: function () {
+                codeId = $("#" + this.id).jqGridRowValue("CODE");
+                if (tableType == 'code') {
+                    var statuses = $("#" + this.id).jqGridRowValue("STATUS");
+                    var statusList = statuses.split(',');
+                    active = false;
+                    $(statusList).each(function () {
+                        if (this.indexOf('off') > -1) {
+                            active = true;
+                        }
+                    })
+                    if (active) {
+                        $('#lr-active').html($('#lr-active').html().replace('禁用', '启用'))
+                    } else {
+                        $('#lr-active').html($('#lr-active').html().replace('启用', '禁用'))
+                    }
+                }
+            },
+            rownumbers: true,
+            onCellSelect: function (rowid, iCol, cellcontent, e) {
+                tableType = 'code';
+                if (iCol == 7) {
+                    codeId = $(e.target).parents('tr').find('td').eq(4).text();
+                    active = $(e.target).attr('class').indexOf('off') > -1;
+                    btn_active();
+                }
+            },
+            onSelectRow: function () {
+                tableType = 'code';
+                $('#titleinfo').html('基础编码');
+                $("#queryCondition .dropdown-text").html('基础编码').attr('data-value', tableType);
+                codeId = $("#" + this.id).jqGridRowValue("CODE");
+                active = $("#" + this.id).jqGridRowValue("STATUS").indexOf('off') > -1;
+                if (active) {
+                    $('#lr-active').html($('#lr-active').html().replace('禁用', '启用'))
+                } else {
+                    $('#lr-active').html($('#lr-active').html().replace('启用', '禁用'))
+                }
+                $('#titleinfo').html('基础编码');
+                $("#queryCondition .dropdown-text").html('基础编码').attr('data-value', tableType)
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).jqGrid('setSelection', 1, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+    //新增
+    function btn_add() {
+        var formTitle = '',
+            _typeId = typeId,
+            _versionId = versionId;
+        switch (tableType) {
+            case 'type':
+                _typeId = ''
+                formTitle = '添加类别';
+                break;
+            case 'version':
+                _versionId = ''
+                formTitle = '添加版本号';
+                break;
+            case 'code':
+                formTitle = '添加编码';
+                break;
+            default:
+                break;
+        }
+        dialogOpen({
+            id: "Form",
+            title: formTitle,
+            url: '/SettingManage/Dictionary/CodeForm?type=' + tableType + "&typeId=" + _typeId + "&verId=" + _versionId,
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        if (checkedRow(tableType)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑编码',
+                url: '/SettingManage/Dictionary/CodeForm?&type=' + tableType + '&typeId=' + typeId + '&verId=' + versionId + '&code=' + codeId,
+                width: "500px",
+                height: "400px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        var removeUrl = '',
+            $reloadTable;
+        if (tableType) {
+            switch (tableType) {
+                case "type":
+                    removeUrl = 'DeleteCodeType';
+                    $reloadTable = $('#codeKindTable');
+                    break;
+                case "version":
+                    removeUrl = "DeleteCodeVersion";
+                    $reloadTable = $('#codeVersionTable');
+                    break;
+                case "code":
+                    removeUrl = "DeleteCode";
+                    $reloadTable = $('#codeDetailTable');
+                    break;
+                default:
+                    break;
+            }
+            $.RemoveForm({
+                url: removeUrl,
+                param: { typeId: typeId, verId: versionId, codeId: codeId },
+                success: function (data) {
+                    $reloadTable.trigger("reloadGrid");
+                }
+            })
+        } else {
+            dialogMsg('请选择需要删除的编码！', 0);
+        }
+    }
+    //启用
+    function btn_active() {
+        var activeUrl = '',
+            $reloadTable;
+        if (tableType) {
+            switch (tableType) {
+                case "type":
+                    activeUrl = 'ActiveType';
+                    $reloadTable = $('#codeKindTable');
+                    break;
+                case "version":
+                    activeUrl = 'ActiveVersion';
+                    $reloadTable = $('#codeVersionTable');
+                    break;
+                case "code":
+                    activeUrl = 'ActiveCode';
+                    $reloadTable = $('#codeDetailTable');
+                    break;
+                default:
+                    break;
+            }
+            $.SaveForm({
+                url: activeUrl,
+                param: { active: active, typeId: typeId, verId: versionId, codeId: codeId },
+                success: function (data) {
+                    $reloadTable.trigger("reloadGrid");
+                    active = !active;
+                    if (active) {
+                        $('#lr-active').html($('#lr-active').html().replace('禁用', '启用'))
+                    } else {
+                        $('#lr-active').html($('#lr-active').html().replace('启用', '禁用'))
+                    }
+                }
+            });
+        } else {
+            dialogMsg('请选择需要启用的编码！', 0);
+        }
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="panel-Title">
+            基础代码 - <span id="titleinfo">基础类别</span>
+        </div>
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="queryCondition" class="btn-group" style="box-sizing: border-box;">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown" style="box-sizing: border-box;" data-value="type">基础类别</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="box-sizing: border-box;"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a data-value="type">基础类别</a></li>
+                                    <li><a data-value="code">基础编码</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 200px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary" style="box-sizing: border-box;"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="toolbar">
+                <div class="btn-group">
+                    <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                    <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;编辑</a>
+                    <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                    <a id="lr-active" class="btn btn-default" onclick="btn_active()"><i class="fa fa-refresh"></i>&nbsp;启用</a>
+                </div>
+            </div>
+        </div>
+        <div class="gridPanel" id="baseCode">
+            <div class="codeTable" id="codeType" style="float:left; padding-right: 10px; overflow-x:auto;">
+                <table id="codeKindTable"></table>
+                <div id="codeKindPager"></div>
+            </div>
+            <div class="codeTable" id="versionCode" style="float:left; padding-right: 10px; overflow-x:auto;">
+                <table id="codeVersionTable"></table>
+                <div id="codeVersionPager"></div>
+            </div>
+            <div class="codeTable" id="codeDetail" style="float:left; overflow-x:auto;">
+                <table id="codeDetailTable"></table>
+                <div id="codeDetailPager"></div>
+            </div>
+        </div>
+    </div>
+</div>

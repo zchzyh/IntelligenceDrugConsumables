@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "方案指标权重明细";
+    Layout = "~/Views/Shared/_Form.cshtml";
+    @System.Web.Optimization.Styles.Render("~/Content/scripts/plugins/jqgrid/css");
+    @System.Web.Optimization.Scripts.Render("~/Content/scripts/plugins/jqgrid/js")
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 20px;
+    }
+    .report-title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+        .report-title label {
+            font-size: 18px;
+        }
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var jxbm = request('jxbm');
+    var officeNo = request('officeNo');
+    $(function () {
+        loadData();
+        $("#btn_Search").click(function () {
+                search('');
+            }
+        );
+      
+    });
+
+    function search(zbbh) {
+        var level = $("#zbjb").attr('data-value');
+        var $gridTable = $("#gridTable");
+        var queryJson = {
+            jxbm: jxbm, 
+            officeNo: officeNo,
+            level: level,
+            zbbh: zbbh
+        }
+        var strJson = JSON.stringify(queryJson);
+        debugger;
+        $gridTable.jqGrid('setGridParam',
+            {
+                postData: { queryJson: strJson }
+            }).trigger('reloadGrid');
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 135);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+    };
+
+
+    function loadData() {
+        hideDialogButtion();
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                resizePage();
+            }, 200);
+            e.stopPropagation();
+        });
+
+
+        $("#zbjb").ComboBox({
+            description: "==请选择==",
+            height: "200px"
+        });
+        $("#zbjb").ComboBoxSetValue('1');
+        getGridTale();
+        resizePage();
+    } 
+
+    function getGridTale() {
+        var selectedRowIndex = 0; 
+        var level = $("#zbjb").attr('data-value');
+        debugger;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "GetWeightReportList",
+            postData: {
+                "queryJson": JSON.stringify({
+                    jxbm: jxbm,
+                    officeNo: officeNo,
+                    level: level
+                })
+            },
+            datatype: "json",
+            height: $(window).height() - 163.5,
+            //width: $(window).width() / 2 - 23,
+            autowidth: true,
+            colModel: [
+                { label: "一级指标编号", name: "FirstZBBH", index: "FirstZBBH", hidden: true },
+                { label: "二级指标编号", name: "SecZBBH", index: "SecZBBH", hidden: true },
+                { label: "年度", name: "ND", index: "ND", width: "50", align: "center"},
+                { label: "科室", name: "OfficeName", index: "OfficeName", width: "70", align: "center" },
+                { label: "方案名称", name: "JGFAMC", index: "JGFAMC", align: "center" },
+                {
+                    label: "一级指标", name: "FirstZBMC", index: "FirstZBMC", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        var firstZBBH = rowObject.FirstZBBH;
+                        return "<A href=javascript:zbgoto(1,'" + firstZBBH +"')  >" + cellvalue+"</a>";
+                } },
+                {
+                    label: "二级指标", name: "SecZBMC", index: "SecZBMC", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        debugger
+                        var secZBBH = rowObject.SecZBBH;
+                        debugger;
+                        return "<A href=javascript:zbgoto(2,'" + secZBBH +"')  >" + cellvalue+"</a>";
+                }
+                },
+                { label: "三级指标", name: "ThirdZBMC", index: "ThirdZBMC", align: "center" },
+                { label: "指标级别", name: "Level", index: "Level", align: "center" },
+                { label: "权重(%)", name: "QZBZ", index: "QZBZ", align: "center"},
+                { label: "得分", name: "Score", index: "SCORE", align: "center"}
+            ],
+            gridComplete: function () {
+                var level = $("#zbjb").attr('data-value');
+                hideCol($gridTable, level);
+                resizePage();
+            },
+            ondblClickRow: function () {
+                var level = $("#zbjb").attr('data-value');
+                var firstZBBH = $("#gridTable").jqGridRowValue("FirstZBBH");
+                var secZBBH = $("#gridTable").jqGridRowValue("SecZBBH");
+                var lv = $("#gridTable").jqGridRowValue("Level");
+                var zbbh = firstZBBH;
+                if (lv === '2')
+                    zbbh = secZBBH;
+
+                if (level < 3) {
+
+                    zbgoto(parseInt(level) + 1, zbbh);
+                    }
+            },
+            rownumbers: true,
+            viewrecords: true,//显示检索记录
+            rowNum: 1000,
+            rowList: [],//[30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'ND',
+            sortorder: 'DESC'
+        });
+        }
+    function zbgoto(level,zbbh) {
+        $("#zbjb").ComboBoxSetValue(level);
+            search(zbbh);
+       // $("#btn_Search").click();
+    }
+    function hideCol($gridTable, level) {
+        debugger;
+        switch (level) {
+        case "1":
+            $gridTable.hideCol(["SecZBMC","ThirdZBMC"]);
+                break;
+            case "2":
+                $gridTable.showCol(["FirstZBMC", "SecZBMC"]);
+                $gridTable.hideCol("ThirdZBMC");
+                break;
+            case "3":
+                $gridTable.showCol(["FirstZBMC", "SecZBMC","ThirdZBMC"]);
+            break;
+        default:
+        }
+  
+    }
+    function hideDialogButtion() {
+        var index = top.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        var $IsdialogClose = top.$("#layui-layer" + index).find('.layui-layer-btn').find("#IsdialogClose");
+        $IsdialogClose.removeAttr('checked');
+
+        top.$("#layui-layer" + index).find('.layui-layer-btn').html(
+            "<input type=\"checkbox\" id=\"IsdialogClose\" style=\"display:none\"><div style='float:left;padding-left:5px;color:red'>双击列表查看下一级指标</div>");
+
+        //top.$("#layui-layer" + index).find('.layui-layer-btn').hide();
+    }
+</script>
+
+<table style="margin-left: 3px; margin-top: 3px;">
+    <tr>
+        <td>指标等级：</td>
+        <td style="width: 120px">
+            <div id="zbjb" style="height: 25px" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                <ul>
+                    <li data-value="1" >一级指标</li>
+                    <li data-value="2">二级指标</li>
+                    <li data-value="3">三级指标</li>
+                </ul>
+            </div>
+        </td>
+        <td style="padding:5px">
+            <a id="btn_Search" class="btn btn-primary" style="height: 30px"><i class="fa fa-search"></i>&nbsp;查询</a>
+        </td>
+    </tr>
+</table>
+
+<div class="report-title"><label id="title-year">@ViewBag.year</label>年<label id="title-dept">@ViewBag.officeName</label>方案权重报告</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "编辑使命远景";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue { padding-left: 20px; }
+
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function() {
+        initData();
+    });
+
+    //初始化控件
+    function initData() {
+        //年度
+        $("#JXBM").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false },
+            id: "ItemValue",
+            text: "ItemText",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfStrategy/MissionVision/GetEntityJson",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#form1").SetWebControls(data);
+                }
+            });
+
+        }
+    }
+
+
+    //保存表单
+    function AcceptClick() {
+
+        debugger;
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        debugger;
+        $.SaveForm({
+            url: "../../PerfStrategy/MissionVision/SaveForm",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display: none">
+            <th class="formTitle">使命编号<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="SMBH" type="text" class="form-control" placeholder="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">绩效年度：<font face="宋体">*</font></th>
+            <td class="formValue">
+
+                <div id="JXBM" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">远景陈述：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <textarea id="YJCS" class="form-control" style="height: 60px;" isvalid="yes" checkexpession="NotNull" maxlength="100"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">使命陈述：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <textarea id="SMCS" class="form-control" style="height: 60px;" isvalid="yes" checkexpession="NotNull" maxlength="100"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle" style="padding-left :5px">
+                价值观陈述：<font face="宋体">*</font>
+            </th>
+            <td class="formValue">
+                <textarea id="JZGCS" class="form-control" style="height: 60px;" isvalid="yes" checkexpession="NotNull" maxlength="100"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle" style="padding-left :5px">战略总目标：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <textarea id="ZLZMB" class="form-control" style="height: 60px;" isvalid="yes" checkexpession="NotNull" maxlength="100"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

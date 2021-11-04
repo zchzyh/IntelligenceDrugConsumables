@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "绩效年度配置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+</style>
+
+<script>
+    debugger;
+    var keyValue = request('keyValue');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        //加载考核主体
+        $("#JXQY").ComboBox({
+            url: "../../PerfConfig/KpiSetting/GetOrgsJson",
+            param: { forSearch: false },//url参数
+            id: "ItemValue",//选项值
+            text: "ItemText",//选项文本
+            height: "200px",
+            description: "==请选择=="//默认
+        });
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfConfig/YearSetting/GetYearJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('#FWZT' + data.FWZT).trigger('click');
+                    $("#KSSJ").val(formatDate(data.KSSJ, "yyyy-MM-dd"));
+                    $("#JZSJ").val(formatDate(data.JZSJ, "yyyy-MM-dd"));
+                }
+            });
+        }
+    }
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.FWZT = $('input[name="FWZT"]:checked').val()
+        debugger;
+        $.SaveForm({
+            url: "../../PerfConfig/YearSetting/SaveYear",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">序号<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="JXBM" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr style="display:none">
+            <th class="formTitle">运行状态<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="YXZT" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">考核主体<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="JXQY" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">考核年度<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="JXND" type="text" class="form-control" placeholder="请输入考核年度" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">开始时间</td>
+            <td class="formValue">
+                <input id="KSSJ" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">截止时间</td>
+            <td class="formValue">
+                <input id="JZSJ" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">当前状态<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display:inline-block;" class="rdio rdio-color_c"><input type="radio" name="FWZT" id="FWZT0" value="0" /><label for="FWZT0">正常绩效</label></div>
+                <div style="display:inline-block;padding-right:30px;" class="rdio rdio-color_a"><input type="radio" name="FWZT" id="FWZT1" value="1" /><label for="FWZT1">历年绩效</label></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                备注
+            </th>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 100px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

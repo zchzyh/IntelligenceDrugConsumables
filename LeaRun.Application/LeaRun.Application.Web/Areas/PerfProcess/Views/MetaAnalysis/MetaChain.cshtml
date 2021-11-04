@@ -1,0 +1,250 @@
+﻿@{
+    ViewBag.Title = "元数据环比分析";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var jxbm = '',
+        metacode = '',
+        yd = '',
+        page = 1;
+    $(function () {
+        InitialPage();
+        GetAnalysisGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#analysisTable').setGridHeight($(window).height() - 143.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: {},
+            success: function (data) {
+                jxbm = data[1].ItemValue
+                $("#year .dropdown-text").html(data[1].ItemText).attr('data-value', jxbm);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', jxbm);
+                });
+            }
+        });
+        // 加载元数据数据
+        $.SetForm({
+            url: "GetMetaDataJson?all=true",
+            param: { sord: 'asc', rows: 10, page: page },
+            success: function (data) {
+                metacode = data[0].ItemValue;
+                $("#meta .dropdown-text").html(data[0].ItemText).attr('data-value', metacode);
+                $.each(data, function (id, item) {
+                    if (item.ItemText != null) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#meta').find('ul').append(row);
+                    }
+                });
+                //科室选中，生成查询条件
+                $("#meta .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    metacode = $(this).find('a').attr('data-value');
+                    $("#meta .dropdown-text").html(text).attr('data-value', metacode);
+                });
+                if (data.length > 0) {
+                    page++;
+                }
+            }
+        });
+        $('#metaDropdown').bind('scroll', function () {
+            //判断到底部的等式: scrollTop+windowHeight=scrollHeight;
+            //变量scrollTop是滚动条滚动时，离顶部的距离
+            var scrollTop = $('#metaDropdown')[0].scrollTop;
+            //变量windowHeight是可视区的高度
+            var windowHeight = $('#metaDropdown')[0].clientHeight;
+            //变量scrollHeight是滚动条的总高度
+            var scrollHeight = $('#metaDropdown')[0].scrollHeight;
+            //判断滚动条是否到底部
+            if (scrollTop + windowHeight > (scrollHeight - 2)) {
+                $.SetForm({
+                    url: "GetMetaDataJson",
+                    param: { sord: 'asc', rows: 10, page: page },
+                    success: function (data) {
+                        $.each(data, function (id, item) {
+                            if (item.ItemText != null) {
+                                var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                                $('#meta').find('ul').append(row);
+                            }
+                        });
+                        //科室选中，生成查询条件
+                        $("#meta .dropdown-menu li").click(function () {
+                            var text = $(this).find('a').html();
+                            metacode = $(this).find('a').attr('data-value');
+                            $("#meta .dropdown-text").html(text).attr('data-value', metacode);
+                        });
+                        if (data.length > 0) {
+                            page++;
+                        } else {
+                            $('#metaDropdown').unbind();
+                        }
+                    }
+                });
+            }
+        });
+        // 加载月份数据
+        $.SetForm({
+            url: "../../CollectionManage/DataCorrect/GetMonthsJson?forSearch=true",
+            param: {},
+            success: function (data) {
+                yd = data[0].ItemValue;
+                $("#month .dropdown-text").html(data[0].ItemText).attr('data-value', yd);
+                $.each(data, function (id, item) {
+                    if (item.ItemText != null) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#month').find('ul').append(row);
+                    }
+                });
+                //月份选中，生成查询条件
+                $("#month .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    yd = $(this).find('a').attr('data-value');
+                    $("#month .dropdown-text").html(text).attr('data-value', yd);
+                });
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            $('#analysisTable').jqGrid('setGridParam', {
+                url: 'GetMetaChainAnalysisListJson',
+                postData: {
+                    "queryJson": JSON.stringify({
+                        jxbm: jxbm,
+                        metcode: metacode,
+                        yd: yd
+                    })
+                },
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //加载分析列表
+    function GetAnalysisGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#analysisTable");
+        $gridTable.jqGrid({
+            url: "GetMetaChainAnalysisListJson",
+            postData: {
+                "queryJson": JSON.stringify({
+                    jxbm: jxbm,
+                    metcode: metacode,
+                    yd: yd
+                })
+            },
+            datatype: "json",
+            height: $(window).height() - 143.5,
+            //width: $(window).width() / 2 - 23,
+            autowidth: true,
+            colModel: [
+                { label: "元数据名称", name: "METNAME", index: "METNAME" },
+                { label: "科室名称", name: "Department", index: "Department", align: "center", width: "50" },
+                { label: "年度", name: "ND", index: "ND", align: "center", width: "50" },
+                { label: "月度", name: "YD", index: "YD", align: "center", width: "30" },
+                { label: "本期数", name: "CurrentPeriodData", index: "CurrentPeriodData", align: "center", width: "70" },
+                { label: "环比数", name: "LastPeriodData", index: "LastPeriodData", align: "center", width: "70" },
+                {
+                    label: "环比增长率", name: "GrowthRate", index: "GrowthRate", align: "center", sortable: false, width: "50",
+                    formatter: function (cellvalue, options, rowObject) {
+                        if (cellvalue || cellvalue == 0) {
+                            cellvalue = cellvalue.toString();
+                            if (cellvalue.indexOf('.') > -1) {
+                                cellvalue = cellvalue.substring(0, cellvalue.indexOf('.') + 3);
+                            }
+                            return cellvalue;
+                        } else {
+                            return '';
+                        }
+                    }
+                }
+            ],
+            rownumbers: true,
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#analysisPager",
+            sortname: 'ND desc,METNAME,Department,YD',
+            sortorder: 'asc'
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="meta" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择元数据</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul id="metaDropdown" class="dropdown-menu" style="max-height: 300px; overflow:auto;">
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="month" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择月度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                </ul>
+                            </div>
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="gridPanel">
+            <table id="analysisTable"></table>
+            <div id="analysisPager"></div>
+        </div>
+    </div>
+</div>
+

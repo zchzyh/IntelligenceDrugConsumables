@@ -1,0 +1,165 @@
+﻿@{
+    ViewBag.Title = "评价方法设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function () {
+        InitialPage();
+        GetGrid();
+    });
+    var gridHeight = $(window).height() - 140;
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight(gridHeight);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    var selectedRowIndex = 0;
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfConfig/AppraiseSeeting/GetAppraiseListJson",
+            datatype: "json",
+            height: gridHeight,
+            autowidth: true,
+            colModel: [
+                { label: "评价方法编码", name: "PJFFBH", hidden: true },
+                { label: "评价方法名称", name: "PJFFMC", index: "PJFFMC", align: "center", width : "80" },
+                { label: "评价方法规则", name: "PJFFGZ", index: "PJFFGZ" },
+                { label: "备注信息", name: "REMARK", index: "REMARK" },
+                {
+                    label: "是否有效", name: "STATUS", index: "STATUS", align: "center", width : "50",
+                    formatter: function (cellvalue, options, rowObject) {
+                        return cellvalue == 1 ? "启用" : "停用";
+                    }
+                }
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 20,
+            rownumbers: true,
+            pager: "#gridPager",
+            sortname: 'PJFFBH',//排序字段，Pagination的字段sidx，分页必须传
+            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                keyword: $("#txt_Keyword").val(),
+            };
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+    }
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '新增-评价方法',
+            url: '/PerfConfig/AppraiseSeeting/EditAppraiseMothed',
+            width: "500px",
+            height: "300px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("PJFFBH");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑-评价方法',
+                url: '/PerfConfig/AppraiseSeeting/EditAppraiseMothed?keyValue=' + keyValue,
+                width: "500px",
+                height: "300px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        } else {
+            dialogMsg('请选择需要编辑的评价方法！', 0);
+        }
+    }
+
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("PJFFBH");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../PerfConfig/AppraiseSeeting/DelAppraiseData",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            });
+        } else {
+            dialogMsg('请选择需要删除的评价方法！', 0);
+        }
+    }
+    //启用/停用
+    function btn_enabled() {
+        var keyValue = $("#gridTable").jqGridRowValue("PJFFBH");
+        var IsEnabled = $("#gridTable").jqGridRowValue("STATUS");
+        if (IsEnabled == "启用") {
+            IsEnabled = "0";
+        } else {
+            IsEnabled = "1";
+        }
+        if (keyValue) {
+            $.ConfirmAjax({
+                msg: "请确认是否要【" + (IsEnabled == 1 ? "启用" : "停用") + "】评价方法？",
+                url: "../../PerfConfig/AppraiseSeeting/EnabledAppraiseData",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").jqGrid('setRowData', selectedRowIndex, { STATUS: IsEnabled })
+                }
+            });
+        } else {
+            dialogMsg('请选择需要操作的评价方法！', 0);
+        }
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入评价方法名称" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+            <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            <a id="lr-enabled" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-refresh"></i>&nbsp;启用/停用</a>
+        </div>
+        <script>$('.toolbar').authorizeButton()</script>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "采集任务预警";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<style>
+
+    .ui-jqgrid tr.jqgrow td {
+        white-space: normal !important;
+        height: auto;
+        vertical-align: text-top;
+        padding-top: 2px;
+    }
+
+    .ui-widget-content {
+        border: 1px solid #ccc !important;
+    }
+</style>
+<script>
+    var jxbm = '',
+        yd = ''
+    $(function () {
+        InitialPage();
+        GetTableGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设表格宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridHeight($(window).height() - 143.5);
+            }, 200);
+            e.stopPropagation();
+        });
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearsJson",
+            param: {},
+            success: function (data) {
+                jxbm = data[0].ItemValue
+                $("#year .dropdown-text").html(data[0].ItemText).attr('data-value', jxbm);
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    jxbm = $(this).find('a').attr('data-value');
+                    $("#year .dropdown-text").html(text).attr('data-value', jxbm);
+                });
+            }
+        });
+        // 加载月份数据
+        $.SetForm({
+            url: "../../CollectionManage/DataCorrect/GetMonthsJson?forSearch=true",
+            param: {},
+            success: function (data) {
+                yd = data[0].ItemValue;
+                $("#month .dropdown-text").html(data[0].ItemText).attr('data-value', yd);
+                $.each(data, function (id, item) {
+                    if (item.ItemText != null) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#month').find('ul').append(row);
+                    }
+                });
+                //月份选中，生成查询条件
+                $("#month .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    yd = $(this).find('a').attr('data-value');
+                    $("#month .dropdown-text").html(text).attr('data-value', yd);
+                });
+            }
+        });
+        //查询事件
+        $("#btn_Search").click(function () {
+            $('#gridTable').jqGrid('setGridParam', {
+                url: 'GetCollectionTaskWarningList',
+                postData: {
+                    "queryJson": JSON.stringify({
+                        name: $("#txt_Keyword").val(),
+                        cjbqm: $("#txt_RwKeyword").val(),
+                        jxbm: jxbm,
+                        yd: yd
+                    })
+                },
+                page: 1
+            }).trigger('reloadGrid');
+        });
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+        //查询回车
+        $('#txt_RwKeyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    }
+    //加载分析列表
+    function GetTableGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "GetCollectionTaskWarningList",
+            datatype: "json",
+            height: $(window).height() - 143.5,
+            autowidth: true,
+            colModel: [
+                //{ label: "编号", name: "XH", index: "XH" },
+                { label: "任务人", name: "NAME", index: "NAME", width: "60", align: "center" },
+                { label: "任务内容", name: "CJBQM", index: "CJBQM" },
+                { label: "年度", name: "ND", index: "ND", width: "50", align: "center" },
+                { label: "月度", name: "YD", index: "YD", width: "50", align: "center" },
+                {
+                    label: "预计开始时间", name: "KSSJ", index: "KSSJ", width: "60", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        if (!cellvalue)
+                            return "";
+                        return cellvalue.substring(0, 10);
+                    }
+                },
+                {
+                    label: "预计结束时间", name: "JZSJ", index: "JZSJ", width: "60", align: "center",
+                    formatter: function (cellvalue, options, rowObject) {
+                        if (!cellvalue)
+                            return "";
+                        return cellvalue.substring(0, 10);
+                    }
+                },
+                { label: "倒计天数", name: "Days", index: "Days", width: "40", align: "center", sortable: false }
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            pager: "#tablePager",
+            sortname: 'ND desc,YD',
+            sortorder: 'asc',
+            rownumbers: true
+        });
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title-search">
+                <table>
+                    <tr>
+                        <td>
+                            <div id="year" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div id="month" class="btn-group">
+                                <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择月度</a>
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                                <ul class="dropdown-menu"></ul>
+                            </div>
+                        </td>
+                        <td>
+                            <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入任务人" style="width: 200px;" />
+                        </td>
+                        <td>
+                            <input id="txt_RwKeyword" type="text" class="form-control" placeholder="请输入任务内容" style="width: 200px;" />
+                        </td>
+                        <td style="padding-left: 5px;">
+                            <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="gridPanel">
+            <table id="gridTable"></table>
+            <div id="tablePager"></div>
+        </div>
+    </div>
+</div>

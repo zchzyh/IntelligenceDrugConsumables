@@ -1,0 +1,150 @@
+﻿@{
+    ViewBag.Title = "采集表频率配置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue { padding-left: 20px; }
+
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function() {
+        initData();
+    });
+
+    //初始化控件
+    function initData() {
+        //年度
+        $("#JXBM").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false },
+            id: "ItemValue",
+            text: "ItemText",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+
+        //频率名称
+        $("#PLBH").ComboBox({
+            url: "../../CollectionManage/DataItemManage/GetCjplJson",
+            param: {},
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+
+        //获取表单
+        if (!!keyValue) {
+            $("#PLBH").attr("disabled", "disabled");
+            $("#JXBM").attr("disabled", "disabled");
+           
+            $.SetForm({
+                url: "../../CollectionManage/TableFrequencyManage/GetCjplJson",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#form1").SetWebControls(data);
+                    if (data.STATUS === "1")
+                        $('input:radio[name=STATUS]')[0].checked = true;
+                    else
+                        $('input:radio[name=STATUS]')[1].checked = true;
+                }
+            });
+        }
+    }
+     
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+         
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.ND = $("#JXBM").text();
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        debugger;
+        $.SaveForm({
+            url: "../../CollectionManage/TableFrequencyManage/SaveForm",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <th class="formTitle">年度：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="JXBM" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">频率名称：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="PLBH" type="select" isvalid="yes"  checkexpession="NotNull" class="ui-select">
+                </div>
+            </td>
+        </tr>
+        <tr style="display: none">
+            <th class="formTitle">序号<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="XH" type="text"/>
+                <input id="ND" type="text"/>
+                @*<div id="XH" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>*@
+            </td>
+        </tr>
+        <tr style="display: none">
+            <th class="formTitle">运行状态<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="YXZT" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>上限天数：</th>
+            <td class="formValue">
+                <input id="SX" type="text" class="form-control" maxlength="8" placeholder="上限天数" isvalid="yes" checkexpession="NotNull"  onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle"><font face="宋体">*</font>下限天数：</td>
+            <td class="formValue">
+                <input id="XX" type="text" class="form-control" maxlength="8" placeholder="下限天数" isvalid="yes" checkexpession="NotNull" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">排序：<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="PX" type="text" class="form-control" maxlength="8" placeholder="" isvalid="yes" checkexpession="NotNull" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">状态：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display: inline-block;" class="rdio rdio-color_c">
+                    <input type="radio" name="STATUS" value="1" checked="checked"/><label for="STATUS1">有效</label>
+                </div>
+                <div style="display: inline-block; padding-right: 30px;" class="rdio rdio-color_a">
+                    <input type="radio" name="STATUS" value="0"/><label for="STATUS0">无效</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                备注：
+            </th>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 100px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

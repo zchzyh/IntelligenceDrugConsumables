@@ -1,0 +1,197 @@
+﻿@{
+    ViewBag.Title = "考核对象管理";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+
+<style>
+    #btn_Save {
+        float: right;
+        margin: 3px 10px;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 3px 6px;
+    }
+</style>
+
+<script>
+    var jxbm = '',
+        selectList = [],
+        assessmentSelectedList = [];
+    $(function () {
+        InitialPage();
+        GetGrid();
+        //查询回车
+        $('#txt_Keyword').bind('keypress', function (event) {
+            if (event.keyCode == "13") {
+                $('#btn_Search').trigger("click");
+            }
+        });
+    });
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight($(window).height() - 180);
+                $("#itemTree").setTreeHeight($(window).width() * 0.7 - 28);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+    //加载树
+    function GetTree() {
+        $("#itemTree").empty();
+        var item = {
+            height: $(window).height() - 62,
+            showcheck: true, //这里没啥用，加着吧...
+            onnodeclick: function (item) {
+                //展开下级
+                $(".bbit-tree-selected").children('.bbit-tree-ec-icon').trigger("click");
+            },
+        };
+        $.ajax({
+            url: "../../PerfConfig/YearSetting/GetDepartmentTree?jxbm=" + jxbm,
+            type: 'post',
+            async: false,
+            success: function (data) {
+                item.data = JSON.parse(data);
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        });
+        //初始化
+        $("#itemTree").treeview(item);
+        assessmentSelectedList = $('#itemTree').getCheckedAllNodes();
+    }
+    //设置更改数据
+    function SaveTree() {
+        var addList = [], removeList = [];
+        selectList = $("#itemTree").getCheckedAllNodes();
+        $(assessmentSelectedList).each(function () {
+            id = this.toString();
+            if (selectList.indexOf(id) == -1) {
+                node = $("#itemTree").getNodeByPath($("#itemTree_" + id).attr("tpath"))
+                if (node.value)
+                    removeList.push(node.value);
+            }
+        })
+        $(selectList).each(function () {
+            id = this.toString();
+            if (assessmentSelectedList.indexOf(id) == -1) {
+                temp = { JXBM: jxbm, JGBM: id }
+                if (id.indexOf("orgCode") == -1)
+                    addList.push(temp);
+            }
+        })
+        if (addList.length > 0 || removeList.length > 0) {
+            $.SaveForm({
+                url: '../../PerfConfig/YearSetting/SaveAssessmentObjectsForm?keyValues=' + removeList,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                param: JSON.stringify({ entities: addList }),
+                loading: "正在保存...",
+                success: function () {
+                    GetTree()
+                    dialogMsg("操作成功", 1);
+                }
+            })
+        } else {
+            GetTree()
+            dialogMsg("操作成功", 1);
+        }
+    }
+    //加载表格
+    function GetGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../PerfConfig/YearSetting/GetYearListJson",
+            datatype: "json",
+            height: $(window).height() - 180,
+            width: $(window).width() * 0.7 - 28,
+            //autowidth: true,
+            colModel: [
+                { label: '主键', name: 'JXBM', hidden: true },
+                { label: '绩效年度', name: 'JXND', index: 'JXND', align: "center" },
+                {
+                    label: "服务状态", name: "FWZTNAME", index: "FWZTNAME", align: "center",
+                    //formatter: function (cellvalue, options, rowObject) {
+                    //    return cellvalue == 1 ? "历年绩效" : "正常绩效";
+                    //}
+                },
+                {
+                    label: "运行状态", name: "YXZTNAME", index: "YXZTNAME", align: "center",
+                    //formatter: function (cellvalue, options, rowObject) {
+                    //    return cellvalue == 1 ? "启用" : "停用";
+                    //}
+                }
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,
+            rowList: [30, 50, 100],
+            sortname: 'JXND',
+            sortorder: 'desc',
+            pager: "#yearsPager",
+            rownumbers: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                jxbm = $("#" + this.id).jqGridRowValue("JXBM");
+                GetTree(jxbm)
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+                $("#" + this.id).jqGrid('setSelection', 1, false);
+                jxbm = $("#" + this.id).jqGridRowValue("JXBM");
+                GetTree()
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                year: $("#txt_Keyword").val()
+            }
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) }
+            }).trigger('reloadGrid');
+        });
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="ui-layout-center" style="width: 70%; float: left;">
+        <div class="center-Panel">
+            <div class="panel-Title">绩效年度</div>
+            <div class="titlePanel">
+                <div class="title-search">
+                    <table>
+                        <tr>
+                            <td>
+                                <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入查询年度" style="width: 200px;" />
+                            </td>
+                            <td style="padding-left: 5px;">
+                                <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="gridPanel">
+                <table id="gridTable"></table>
+                <div id="yearsPager"></div>
+            </div>
+        </div>
+    </div>
+    <div class="ui-layout-west" style="width: 30%; float: left;">
+        <div class="west-Panel">
+            <div class="panel-Title">
+                机构列表
+                <a id="btn_Save" class="btn btn-primary" onclick="SaveTree()">保存</a>
+            </div>
+            <div id="itemTree"></div>
+        </div>
+    </div>
+</div>

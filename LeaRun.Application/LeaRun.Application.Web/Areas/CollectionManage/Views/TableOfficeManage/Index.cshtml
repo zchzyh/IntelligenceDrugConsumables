@@ -1,0 +1,213 @@
+﻿@{
+    ViewBag.Title = "采集表科室设置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+
+    var officeId = "";
+    var orgId = '';
+    $(function() {
+        loadData();
+        initialPage();
+    });
+
+    function loadData() {
+        bindEvent();
+        getOrgs();
+        getGridTable();
+    }
+
+    function bindEvent() {
+
+        $("#YXZT .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#YXZT .dropdown-text").html(text).attr('data-value', value);
+        });
+
+    }
+
+    function getOrgs() {
+        $.SetForm({
+            url: "../../CollectionManage/TableOfficeManage/GetOrgsJson",
+            param: {},
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ORGID + '">' + item.SHORTNAME + '</a></li>';
+                        $('#org').find('ul').append(row);
+                    });
+                //年度选中，生成查询条件
+                $("#org .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#org .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+
+    //初始化页面
+    function initialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                    resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 150);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 1));
+        $("#itemTree").height($(".gridPanel").height());
+    };
+
+    function getTableTree(orgId, officeId,tableName) {
+        var item = {
+            height: $(".gridPanel").height(),
+            showcheck: true,
+            url: "../../CollectionManage/TableOfficeManage/GetTreeListForOffice?officeId=" + officeId + "&orgId=" + orgId + "&tableName=" + tableName
+        };
+        $("#itemTree").treeview(item);
+    }
+
+
+//加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TableOfficeManage/GetPageList",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "主键", name: "ID", hidden: true },
+                { label: "ORGID", name: "ORGID", hidden: true },
+                { label: "医疗机构", name: "OrgName", index: "OrgName" },
+                { label: "科室名称", name: "OFFICENAME", index: "OFFICENAME" },
+                { label: "科室代码", name: "OFFICECODE", index: "OFFICECODE" }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 30, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'CREATEAT', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            onSelectRow: function() {
+                orgId = $("#" + this.id).jqGridRowValue("ORGID");
+                officeId = $("#" + this.id).jqGridRowValue("ID");
+                getTableTree(orgId, officeId,'');
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(1, false);
+                orgId = $("#" + this.id).jqGridRowValue("ORGID");
+                officeId = $("#" + this.id).jqGridRowValue("ID");
+                debugger;
+                getTableTree(orgId, officeId,'');
+            }
+        });
+//$gridTable.authorizeColModel($('.gridPanel').width());
+//查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                orgId: $("#org").find('.dropdown-text').attr('data-value'),
+                office: $("#office").val(),
+                officeCode: $("#officeCode").val()
+            }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+
+        $("#btn_tableSearch").click(function () {
+            debugger;
+            var tableName = $("#tableName").val();
+            getTableTree(orgId, officeId, tableName);
+        });
+    }
+
+    function saveData() {
+        var tablesIds = String($("#itemTree").getCheckedNodes());
+        if (tablesIds === "null") {
+            dialogAlert("请选择科室记录");
+            return;
+        }
+
+        var postData = {
+            orgId: orgId,
+            officeId: officeId,
+            tableIds: tablesIds
+        };
+        $.SaveForm({
+            url: "../../CollectionManage/TableOfficeManage/SaveData",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="ui-layout-center" style="width: 70%; float: left;">
+        <div class="center-Panel">
+            <div class="titlePanel">
+                <div class="title-search">
+                    <table>
+                        <tr>
+                            <td>
+                                <div id="org" class="btn-group">
+                                    <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择医疗机构</a>
+                                    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                        <span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu"></ul>
+                                </div>
+                            </td>
+                            <td>
+                                <input id="office" type="text" class="form-control" placeholder="科室名称" style="width: 200px;"/>
+                            </td>
+                            <td>
+                                <input id="officeCode" type="text" class="form-control" placeholder="科室代码" style="width: 200px;"/>
+                            </td>
+                            <td style="padding-left: 5px;">
+                                <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="toolbar">
+                    <div class="btn-group">
+                        <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                        <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                        <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                        <a id="lr-enabled" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-refresh"></i>&nbsp;启用/停用</a>
+                    </div>
+                    <script>$('.toolbar').authorizeButton()</script>
+                </div>
+            </div>
+            <div class="gridPanel">
+                <table id="gridTable"></table>
+                <div id="gridPager"></div>
+            </div>
+        </div>
+    </div>
+    <div class="ui-layout-west" style="width: 30%; float: left;">
+        <div class="west-Panel">
+            <div class="panel-Title" style="height: 37px;">
+                <table><tr><td><input id="btnSave" type="button" onclick="saveData()" class="btn btn-primary" style="height: 30px" value="保存采集表" /></td>
+                    <td style="padding:3px"><input id="tableName" type="text" class="form-control" title="搜索结果红色显示" placeholder="请输入采集表名称" style="width: 150px;" /></td>
+                    <td><a id="btn_tableSearch" class="btn btn-primary"  style="height: 30px"><i class="fa fa-search"></i>&nbsp;查询</a></td></tr></table>
+            </div>
+            <div id="itemTree" style="margin: 10px;">请选择左边列表</div>
+
+        </div>
+    </div>
+</div>

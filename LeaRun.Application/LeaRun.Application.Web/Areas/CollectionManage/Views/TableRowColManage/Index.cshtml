@@ -1,0 +1,380 @@
+﻿@{
+    ViewBag.Title = "采集表行列配置";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+
+
+<script>
+    $(function() {
+        loadData();
+        initialPage();
+    });
+
+    //初始化页面
+    function initialPage() {
+        //resize重配(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                    resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+
+        function resizePage() {
+            $("#gridTable").setGridHeight($(window).height() - 135);
+            $('#gridTable').setGridWidth(($('.gridPanel').width()-1));
+        };
+
+        resizePage();
+    }
+
+    //加载数据
+    function loadData() {
+
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearStrJson",
+            param: {},
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#JXND').find('ul').append(row);
+                    });
+                //年度选中，生成查询条件
+                $("#JXND .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#JXND .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+
+        //加载分类数据
+        $.SetForm({
+            url: "../../CollectionManage/TableManage/GetDataCategoryListJson",
+            param: { grade: "1", forSearch: true },
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#SSLB').find('ul').append(row);
+                    });
+
+                $("#SSLB .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#SSLB .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+
+        bindEvent();
+
+        getGridTable();
+    }
+
+    function bindEvent() {
+        $("#RowStatus .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#RowStatus .dropdown-text").html(text).attr('data-value', value);
+        });
+
+        $("#ColStatus .dropdown-menu li").click(function() {
+            var text = $(this).find('a').html();
+            var value = $(this).find('a').attr('data-value');
+            $("#ColStatus .dropdown-text").html(text).attr('data-value', value);
+        });
+    }
+
+    var selectedRowIndex = 0;
+
+    //加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/TableRowColManage/GetRowColPageList",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "年度", name: "ND", index: "ND", align: "center", width: "50" },
+                { label: "所属类别", name: "CategoryName", index: "CategoryName", align: "center", width: "50"},
+                { label: "采集表编码", name: "CJBBM", index: "CJBBM", align: "center", width: "60"},
+                { label: "采集表简称", name: "CJBMC", index: "CJBMC", width: "100" },
+                { label: "采集表全名", name: "CJBQM", index: "CJBQM", width: "120" },
+                //{
+                //    label: "采集方式",
+                //    name: "CJFS",
+                //    index: "CJFS",
+                //    align: "center",
+                //    width: "50",
+                //    formatter: function(cellvalue, options, rowObject) {
+                //        return cellvalue == 1 ? "手工" : "自动";
+                //    }
+                //},
+                //{ label: "采集频率", name: "CJPLMC", index: "CJPL", align: "center", width: "100" },
+                {
+                    label: "行配置",
+                    name: "RowStatus",
+                    index: "RowStatus",
+                    align: "center",
+                    width: "50",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "1" ? "已配置" : "未配置";
+                    }
+                },
+                //{ label: "排序", name: "PX", index: "PX", align: "center", width: "50" },
+                {
+                    label: "列配置",
+                    name: "ColStatus",
+                    index: "ColStatus",
+                    align: "center",
+                    width: "50",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "1" ? "已配置" : "未配置";
+                    }
+                },
+                {
+                    label: "操作",
+                    name: "action",
+                    sortable: false,
+                    index: "",
+                    align: "center",
+                    width: "110",
+                    formatter: editLink
+                }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 30, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'ND', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            gridview: true,
+            onSelectRow: function() {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                category: $("#SSLB").find('.dropdown-text').attr('data-value'),
+                year: $("#JXND").find('.dropdown-text').attr('data-value'),
+                rowStatus: $("#RowStatus").find('.dropdown-text').attr('data-value'),
+                colStatus: $("#ColStatus").find('.dropdown-text').attr('data-value'),
+                tableName: $("#CJBMC").val(),
+                tableNo: $("#CJBBM").val()
+        }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+
+        function editLink(cellValue, options, rowdata, action) {
+            var tbbm = rowdata.CJBBM;
+            var year = rowdata.ND;
+            return "<a href=javascript:rowSetting('" +
+                tbbm +
+                "','" +
+                year +
+                "') ><font style=\"color:#f39c12\">行设置</font></a>|" +
+                "<a href=javascript:colSetting('" +
+                tbbm +
+                "','" +
+                year +
+                "') ><font style=\"color:#f39c12\">&nbsp;列设置</font></a>|" +
+                "<a href=javascript:tablePreview('" +
+                tbbm +
+                "','" +
+                year +
+                "') ><font style=\"color:#f39c12\">&nbsp;预览采集表</font></a>";
+
+        }
+    }
+
+    //新增
+    function rowSetting(tbbm, year) {
+        dialogOpen({
+            id: "Form",
+            title: '行设置',
+            url: '/CollectionManage/TableRowColManage/RowSetting?tbBm=' + tbbm + "&year=" + year,
+            width: "500px",
+            height: "450px",
+            btn: [],
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+
+    function colSetting(tbbm, year) {
+        dialogOpen({
+            id: "Form",
+            title: '列设置',
+            url: '/CollectionManage/TableRowColManage/colSetting?tbBm=' + tbbm + "&year=" + year,
+            width: "600px",
+            height: "520px",
+            btn: [],
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+
+    function tablePreview(tbbm, year) {
+        dialogOpen({
+            id: "Form",
+            title: '采集表预览',
+            url: '/CollectionManage/TableRowColManage/tablePreview?tbBm=' + tbbm + "&year=" + year,
+            width: $(window).width().toString() + "px",
+            height: "700px",
+            btn: [],
+            callBack: function(iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+
+    function copyLastYearRowSetting() {
+        debugger;
+        var year = $('#JXND').find('.dropdown-text').attr('data-value');
+        //var tbBm = $("#gridTable").jqGridRowValue("CJBBM");
+        if (!year) {
+            dialogMsg('请选择绩效年度！', 0);
+            return;
+        }
+        //if (tbBm) {
+            $.ConfirmAjax({
+                msg: "请确认是否复制上年(" + (year - 1) + ")行配置?",
+                url: "../../CollectionManage/TableRowColManage/CopyLastYearRowSetting",
+                param: { year: year },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                    //$("#gridTable").jqGrid('setRowData', selectedRowIndex, { STATUS: enabled });
+                }
+            });
+        //}
+        //else {
+        //    dialogMsg('请选择采集表记录！', 0);
+        //}
+    }
+
+    function copyLastYearColSetting() {
+        debugger;
+        var year = $('#JXND').find('.dropdown-text').attr('data-value');
+        //var tbBm = $("#gridTable").jqGridRowValue("CJBBM");
+        if (!year) {
+            dialogMsg('请选择绩效年度！', 0);
+            return;
+        }
+        //if (tbBm) {
+            $.ConfirmAjax({
+                msg: "请确认是否复制上年(" + (year - 1) + ")列配置?",
+                url: "../../CollectionManage/TableRowColManage/CopyLastYearColSetting",
+                param: { year: year},
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                    //$("#gridTable").jqGrid('setRowData', selectedRowIndex, { STATUS: enabled });
+                }
+            });
+        //} else {
+        //    dialogMsg('请选择采集表记录！', 0);
+        //}
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <div id="JXND" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择年度</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="SSLB" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">所属类别</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu"></ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="RowStatus" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">行配置</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a data-value="">全部</a>
+                            </li>
+                            <li>
+                                <a data-value="0">未配置</a>
+                            </li>
+                            <li>
+                                <a data-value="1">已配置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+                <td>
+                    <div id="ColStatus" class="btn-group">
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">列配置</a>
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a data-value="">全部</a>
+                            </li>
+                            <li>
+                                <a data-value="0">未配置</a>
+                            </li>
+                            <li>
+                                <a data-value="1">已配置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+                <td>
+                    <input id="CJBBM" type="text" class="form-control" placeholder="请输入采集表编码" style="width: 110px;" />
+                </td>
+                <td>
+                    <input id="CJBMC" type="text" class="form-control" placeholder="请输入采集表名称" style="width: 170px;"/>
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-copyRowData" class="btn btn-default" onclick="copyLastYearRowSetting()"><i class="fa fa-plus"></i>&nbsp;复制上年行配置</a>
+            <a id="lr-copyColData" class="btn btn-default" onclick="copyLastYearColSetting()"><i class="fa fa-pencil-square-o"></i>&nbsp;复制上年列配置</a>
+            @*<a id="lr-rowSetting" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;行配置</a>*@
+            @*<a id="lr-colSetting" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-trash-o"></i>&nbsp;列配置</a>
+            <a id="lr-viewTable" class="btn btn-default" onclick="btn_enabled()"><i class="fa fa-trash-o"></i>&nbsp;预览采集表</a>*@
+        </div>
+        @*<script>$('.toolbar').authorizeButton()</script>*@
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>

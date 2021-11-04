@@ -1,0 +1,127 @@
+﻿@{
+    ViewBag.Title = "数据项类别设置";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    var year = request('year');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+        $("#GRADE").ComboBox({
+            url: "../../PerfConfig/KpiSetting/GetGradeJson",
+            id: "ItemValue",//选项值
+            text: "ItemText",//选项文本
+            height: "200px",//第二次设置不生效
+            description: "==请选择=="
+        });
+        $("#GRADE").bind("change", function () {
+            var value = $(this).attr('data-value');
+            $PARENT = $("#PARENT");
+            var dontGet = false;
+            if (value == "2") {
+                $PARENT.attr("checkexpession", "NotNull");
+                $PARENT.parent().siblings().find("font").css("display", "inline-block");
+            } else {
+                dontGet = true;
+                $PARENT.attr("checkexpession", "");
+                $PARENT.parent().siblings().find("font").css("display", "none");
+                $PARENT.attr("data-value", "").attr("data-text", "").children().text("");
+                //移除错误提示
+                $PARENT.parent().removeClass("has-error");
+                $(".poptip").remove();
+            }
+            $PARENT.ComboBox({
+                url: "../../PerfConfig/KpiSetting/GetFirstKindJson",
+                param: { forSearch: false, dontGet: dontGet },//url参数
+                id: "ItemValue",//选项值
+                text: "ItemText",//选项文本
+                height: "200px",//第二次设置不生效
+                description: "==请选择=="
+            });
+        });
+        $("#PARENT").ComboBox({
+            height: "80px",//首次设置才生效
+            description: "==请选择=="//默认
+        });
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfConfig/KpiSetting/GetTypeJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $('#GRADE').trigger("change");
+                    $("#PARENT").ComboBoxSetValue(data.PARENT);
+                    $('#STATUS' + data.STATUS).trigger('click');
+                }
+            });
+        }
+    }
+
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        $.SaveForm({
+            url: "../../PerfConfig/KpiSetting/SaveDataType",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display:none">
+            <th class="formTitle">分类编码</th>
+            <td class="formValue">
+                <input id="TYPEID" type="text" class="form-control" placeholder="请输入元数据编号" isvalid="yes" checkexpession="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">分类名称<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="NAME" type="text" class="form-control" placeholder="请输入分类名称" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">上级分类<font face="宋体" style="display:none;">*</font></th>
+            <td class="formValue">
+                <div id="PARENT" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">级别<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="GRADE" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">是否启用<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display:inline-block;padding-right:30px;" class="rdio rdio-color_a"><input type="radio" name="STATUS" id="STATUS1" value="1" checked /><label for="STATUS1">启用</label></div>
+                <div style="display:inline-block;" class="rdio rdio-color_c"><input type="radio" name="STATUS" id="STATUS0" value="0" /><label for="STATUS0">停用</label></div>
+            </td>
+        </tr>
+    </table>
+</div>

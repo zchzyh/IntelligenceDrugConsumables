@@ -1,0 +1,249 @@
+﻿@{
+    ViewBag.Title = "主管机构人员管理";
+    Layout = "~/Views/Shared/_LayoutIndex.cshtml";
+}
+<script>
+    $(function () {
+        InitialPage();
+        GetTree();
+        GetGrid();
+    });
+    //初始化页面
+    function InitialPage() {
+        //layout布局
+        $('#layout').layout({
+            applyDemoStyles: true,
+            onresize: function () {
+                $(window).resize();
+            }
+        });
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                $('#gridTable').setGridWidth(($('.gridPanel').width()));
+                $("#gridTable").setGridHeight($(window).height() - 141);
+                $("#itemTree").setTreeHeight($(window).height() - 52);
+            }, 200);
+            e.stopPropagation();
+        });
+    }
+
+    //加载树
+    var organizeId = 0;
+    var parentId = 0;
+    var parentName = "";
+    function GetTree() {
+        var item = {
+            height: $(window).height() - 52,
+            url: "../../SettingManage/PMR009User/GetMorTreeJson",
+            onnodeclick: function (item) {
+                var strs = item.Sort;
+                if (strs != "Department") {
+                    dialogMsg('请选择科室！', 0);
+                }
+                else {
+                    organizeId = item.parent.id;
+                    parentId = item.id;
+                    parentName = item.text;
+                    //展开下级
+                   // $(".bbit-tree-selected").children('.bbit-tree-ec-icon').trigger("click");
+                    $('#btn_Search').trigger("click");
+                }              
+            },
+        };
+        //初始化
+        $("#itemTree").treeview(item);
+    }
+    //加载表格
+    function GetGrid() {
+        var selectedRowIndex = 0;
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../SettingManage/PMR009User/GetPageListJson",
+            datatype: "json",
+            height: $(window).height() - 141,
+            autowidth: true,
+            colModel: [
+                { label: '主键', name: 'ID', hidden: true },
+                { label: '姓名', name: 'NAME', index: 'NAME' },
+                { label: '性别', name: 'SEXNAME', index: 'SEX', width: 100, align: "center" },
+                { label: '专业职称', name: 'PROFESSIONALNAME', index: 'PROFESSIONALNAME' },
+                { label: '岗位', name: 'POSTNAME', index: 'POST' },
+                { label: '证件号码', name: 'CARDCODE', index: 'CARDCODE', width: 300, align: "center" },
+                { label: '科室', name: 'SECTIONOFFICE', index: 'SECTIONOFFICE' },
+                {
+                    label: "是否启用", name: "FLAG", index: "FLAG", align: "center",
+                     formatter: function (cellvalue, options, rowObject) {
+                         return cellvalue == 1 ? "<i class=\"fa fa-toggle-on\"></i>" : "<i class=\"fa fa-toggle-off\"></i>";
+                     }
+                },
+                //{ label: "备注", name: "REMARK", index: "REMARK" },
+                { label: "创建人", name: "CREATOR", index: "CREATOR" },
+                { label: "创建时间", name: "CREATEAT", index: "CREATEAT", align: "center", width: 280 },
+                {
+                     label: "操作",
+                     name: "action",
+                     sortable: false,
+                     index: "",
+                     align: "center",
+                     width: "160",
+                     formatter: editLink
+                }
+            ],
+            rowNum: "10000",
+            rownumbers: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {          
+            var queryJson = {
+                organizeId: organizeId,
+                parentId: parentId,
+                keyword: $("#txt_Keyword").val()
+            }
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) }, page: 1
+            }).trigger('reloadGrid');
+        });
+
+        function editLink(cellValue, options, rowdata, action) {
+            var tbbm = rowdata.CJBBM;
+            var year = rowdata.ND;
+            return "<a href=javascript:accountSetting('" +
+                tbbm +
+                "','" +
+                year +
+                "') ><font style=\"color:#f39c12\">帐号设置</font></a>";
+        }
+    }
+    //新增
+    function btn_add() {
+        if (organizeId == 0 || parentId==0)
+        {
+            dialogMsg('请选择科室！', 0);
+            return;
+        }
+        dialogOpen({
+            id: "Form",
+            title: '添加主管机构人员',
+            url: '/SettingManage/PMR009User/Form?ORGID=' + organizeId + "&parentId=" + parentId + "&parentName=" + escape(parentName),
+            width: "800px",
+            height: "500px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        var keyValue = $("#gridTable").jqGridRowValue("ID");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑主管机构人员',
+                url: '/SettingManage/PMR009User/Form?keyValue=' + keyValue,
+                    //+ '&ORGID=' + organizeId + '&parentId=' + parentId + '&parentName=' + parentName,
+                width: "800px",
+                height: "500px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+    //删除
+    function btn_delete() {
+        var keyValue = $("#gridTable").jqGridRowValue("ID");
+        if (keyValue) {
+            $.RemoveForm({
+                url: "../../SettingManage/PMR009User/RemoveForm",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#gridTable").trigger("reloadGrid");
+                }
+            })
+        } else {
+            dialogMsg('请选择需要删除的主管机构部门！', 0);
+        }
+    }
+    //详细
+    function btn_detail() {
+        var keyValue = $("#gridTable").jqGridRowValue("ID");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Detail",
+                title: '主管机构部门信息',
+                url: '/SettingManage/PMR009User/Detail?keyValue=' + keyValue,
+                width: "500px",
+                height: "430px",
+                btn: null
+            });
+        }
+    }
+
+    function accountSetting()
+    {
+        var keyValue = $("#gridTable").jqGridRowValue("ID");
+        if (checkedRow(keyValue)) {
+            dialogOpen({
+                id: "Form",
+                title: '编辑主管机构人员',
+                url: '/SettingManage/PMR009User/UserForm?keyValue=' + keyValue,
+                width: "800px",
+                height: "500px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].AcceptClick();
+                }
+            });
+        }
+    }
+</script>
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="ui-layout-west">
+        <div class="west-Panel">
+            <div class="panel-Title">部门列表</div>
+            <div id="itemTree"></div>
+        </div>
+    </div>
+    <div class="ui-layout-center">
+        <div class="center-Panel">
+            <div class="panel-Title">人员信息</div>
+            <div class="titlePanel">
+                <div class="title-search">
+                    <table>
+                        <tr>
+                            <td>
+                                <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 200px;" />
+                            </td>
+                            <td style="padding-left: 5px;">
+                                <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="toolbar">
+                    <div class="btn-group">
+                        <a id="lr-replace" class="btn btn-default" onclick="reload();"><i class="fa fa-refresh"></i>&nbsp;刷新</a>
+                        <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                        <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;编辑</a>
+                        <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+                        <a id="lr-detail" class="btn btn-default" onclick="btn_detail()"><i class="fa fa-list-alt"></i>&nbsp;详细</a>
+                    </div>
+                    @*<div class="btn-group">
+                        <a id="lr-assign" class="btn btn-default" onclick="btn_assign()"><i class="fa fa fa-group"></i>&nbsp;分配帐号</a>
+                    </div>*@
+                    <script>$('.toolbar').authorizeButton()</script>
+                </div>
+            </div>
+            <div class="gridPanel">
+                <table id="gridTable"></table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,75 @@
+﻿@{
+    ViewBag.Title = "目标值审核";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 40px;
+    }
+
+    .ui-select-option-content {
+        max-height: !important 200px;
+    }
+</style>
+
+<script>
+    var keyValues = request('keyValues');
+    var keyNames = '@ViewData["keyNames"]';
+    $(function () {
+        initControl();
+        initBtnClick();
+    });
+    //初始化控件
+    function initControl() {
+        //获取表单
+        if (!!keyValues) {
+            $("#form1").SetWebControls({ keyNames: keyNames.replace(new RegExp(',', 'gm'), '\n') });
+        }
+    }
+
+    //初始化按钮点击事件
+    function initBtnClick() {
+        $("#btn_agree").click(function () {
+            AcceptClick(1);
+        });
+        $("#btn_refuse").click(function () {
+            AcceptClick(2);
+        });
+        $("#btn_cancel").click(function () {
+            dialogClose();
+            //AcceptClick(0);
+        });
+    }
+
+    //保存表单
+    function AcceptClick(flag) {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        $.SaveForm({
+            url: "../../CollectionManage/TaskAudit/Audit",
+            param: { keyValues: keyValues, status: flag },
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <th class="formTitle">任务内容</th>
+            <td class="formValue">
+                <textarea id="keyNames" class="form-control" isvalid="yes" checkexpession="" style="height: 180px;" readonly="readonly"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="form-button">
+    <a id="btn_agree" class="btn btn-success">同意</a>
+    <a id="btn_refuse" class="btn" style="background-color:#cb3434;color:#fff;">拒绝</a>
+    <a id="btn_cancel" class="btn btn-default">取消</a>
+</div>

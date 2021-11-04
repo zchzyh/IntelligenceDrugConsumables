@@ -1,0 +1,478 @@
+﻿@{
+    ViewBag.Title = "机构管理";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+<style>
+    .form .formTitle
+    {
+        width:100px;
+    }
+</style>
+<script>
+    var keyValue = request('keyValue');
+    var parentId = request('parentId');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+      
+        //上级机构
+        $("#PARENTORG").ComboBoxTree({
+            url: "../../SettingManage/PmrOrg/GetTreeJson",
+            description: "==请选择==",
+            height: "200px",
+            allowSearch: true
+        });
+
+        //行政区域
+        $("#ADMINISTRATIVECODE").ComboBoxTree({
+            url: "../../SettingManage/Dictionary/GetPMR025UnitTreeJson",
+            description: "==请选择==",
+            height: "260px",
+            allowSearch: true
+        });
+        //1医疗机构等级
+        $("#ORGGRADE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医疗机构等级" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+
+        //2是否分院
+        $("#BRANCH").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "是否分院" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //3是否民族自治
+        $("#SWARAJ").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "是否民族自治" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //4民族
+        $("#SWARAJINFO").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "民族代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //5机构类别
+        $("#MEDICALCARETYPE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医疗卫生机构类别" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //6是否定点医院
+        $("#FIXPOINT").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "是否定点医院" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+        //7经济类型
+        $("#ECONOMICCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "经济类型" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //8机构分类
+        $("#TYPECODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "机构分类代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //9医疗卫生机构隶属关系
+        $("#BELONGTO").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医疗卫生机构隶属关系" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //10医疗卫生机构隶属关系
+        $("#BELONGTO").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医疗卫生机构隶属关系" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //11医疗机构级别
+        $("#ORGLEV").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医疗机构级别" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+             
+
+        //12机构定点类型
+        $("#FLAG").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "是否状态" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //12机构定点类型
+        $("#FIXPOINTCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "机构定点类型" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../SettingManage/PmrOrg/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                    $("#FoundedTime").val(formatDate(data.FoundedTime, "yyyy-MM-dd"));
+                    $("#ProvinceId").trigger("change");
+                    if (data.CityId != undefined) {
+                        $("#CityId").ComboBoxSetValue(data.CityId).trigger("change");
+                        $("#CountyId").ComboBoxSetValue(data.CountyId);
+                    }
+                }
+            });
+        } else {
+           // $("#ParentId").ComboBoxTreeSetValue(parentId);
+        }
+    }
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData["Manager"] = $("#ManagerId").attr('data-text');
+        if (postData["ParentId"] == "") {
+            postData["ParentId"] = 0;
+        }
+        $.SaveForm({
+            url: "../../SettingManage/PmrOrg/SaveForm?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function () {
+                $.currentIframe().$("#gridTable").resetSelection();
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+<div style="margin-left: 10px; margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr>
+            <th class="formTitle">机构编码<font face="宋体">*</font></th>
+            <td class="formValue" colspan="3">
+                <input id="ORGCODE" type="text"  isvalid="yes" checkexpession="NotNull" 
+                       @*onblur="$.ExistField(this.id,'../../BaseManage/Organize/ExistFullName')"*@
+                        class="form-control" />
+            </td>
+            <th class="formTitle">下设卫生所数</th>
+            <td class="formValue" colspan="3">
+                <input id="CLINICS" type="text" class="form-control" />
+                @*<div id="Nature" type="select" class="ui-select">
+                </div>*@
+            </td>
+           
+        </tr>
+        <tr>
+            <th class="formTitle">构建房屋建筑面积</th>
+            <td class="formValue" colspan="3">
+                <input id="HOUSEAREA" type="text" class="form-control" />
+                @*<div id="Nature" type="select" class="ui-select">
+            </div>*@
+            </td>
+            <th class="formTitle">机构名称<font face="宋体">*</font></th>
+            <td class="formValue" colspan="3">
+                <input id="MANAGERORGNAME" type="text"  isvalid="yes" checkexpession="NotNull"   class="form-control" />
+                @*<div id="Nature" type="select" class="ui-select">
+            </div>*@
+            </td>
+        </tr>
+        <tr>           
+            <th class="formTitle">机构等级<font face="宋体">*</font></th>
+            <td class="formValue" colspan="3">
+                @*<input id="ORGGRADE" type="text"  isvalid="yes" checkexpession="NotNull" class="form-control" />*@
+                <div id="ORGGRADE" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull" ></div>
+            </td>
+            <th class="formTitle">总资产</th>
+            <td class="formValue" colspan="3">
+                <input id="TOTALMONEY" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">简称</th>
+            <td class="formValue" colspan="3">
+                <input id="SHORTNAME" type="text" class="form-control" />
+                @*<div id="ParentId" type="selectTree" class="ui-select">
+                </div>*@
+            </td>
+            <th class="formTitle">是否分院</th>
+        
+            <td class="formValue"  colspan="3">
+                <div id="BRANCH" type="selectTree" class="ui-select"></div>
+            </td>
+                @*<input id="BRANCH" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />*@
+          
+            
+        </tr>
+        <tr>
+            <th class="formTitle">固定资产</th>
+            <td class="formValue" colspan="3">
+                <input id="FIXMONEY" type="text" class="form-control" />
+                @*<input id="FIXMONEY" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />*@
+            </td>
+            <th class="formTitle">法人代表</th>
+            <td class="formValue" colspan="3">
+                @*<div id="ManagerId" type="selectTree" class="ui-select"></div>*@
+                <input id="CORPORATE" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+           
+            <th class="formTitle">上级机构</th>
+            <td class="formValue" colspan="3">
+                <div id="PARENTORG" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">万元以上设备数</th>
+            <td class="formValue" colspan="3">
+                <input id="EQUIS" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">注册资金</th>
+            <td class="formValue" colspan="3">
+                <input id="REGMONEY" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">是否民族自治</th>
+            <td class="formValue"  colspan="3">
+                <div id="SWARAJ" type="selectTree" class="ui-select"></div>
+            </td>
+          
+        </tr>
+        <tr>
+            <th class="formTitle">50~100万元设备数</th>
+            <td class="formValue" colspan="3">
+                <input id="EQUITENS" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">成立日期</th>
+            <td class="formValue" colspan="3">
+                @*<div style="float: left; width: 255px;">
+                <div id="ProvinceId" type="select" class="ui-select" style="float: left; width: 84px; margin-right: 1px;"></div>
+                <div id="CityId" type="select" class="ui-select" style="float: left; width: 84px; margin-right: 1px;"></div>
+                <div id="CountyId" type="select" class="ui-select" style="float: left; width: 84px; margin-right: 1px;"></div>
+            </div>
+            <div style="margin: 0 auto; width: 100%;">
+                <input id="Address" type="text" class="form-control" style="float: left; width: 355px;" />
+            </div>*@
+                <input id="REGAT" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+            </td>
+        </tr>
+
+        <tr>
+           
+            <th class="formTitle">民族</th>
+            <td class="formValue"  colspan="3">
+                <div id="SWARAJINFO" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">100万元以上设备数</th>
+            <td class="formValue"  colspan="3">
+                <input id="EQUIHANS" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">卫生机构类别</th>
+            <td class="formValue"  colspan="3">
+                <div id="MEDICALCARETYPE" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">是否定点医院</th>
+            <td class="formValue"  colspan="3">
+                <div id="FIXPOINT" type="selectTree" class="ui-select"></div>
+            </td>
+           
+        </tr>
+        <tr>
+            <th class="formTitle">联系电话</th>
+            <td class="formValue"  colspan="3">
+                <input id="TEL" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">
+                经济类型
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="ECONOMICCODE" type="selectTree" class="ui-select"></div>
+            </td>
+        </tr>
+        <tr>
+           
+            <th class="formTitle">
+                定点类型
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="FIXPOINTCODE" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">
+                电子邮件
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="EMAIL" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                机构分类
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="TYPECODE" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">
+                人员数
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="PERSONS" type="text" class="form-control" />
+            </td>
+           
+        </tr>
+        <tr>
+            <th class="formTitle">
+                邮政编码
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="ZIPCODE" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">
+                隶属关系
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="BELONGTO" type="selectTree" class="ui-select"></div>
+            </td>
+        </tr>
+        <tr>
+           
+            <th class="formTitle">
+                卫技人员数
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="MEDICALS" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">
+                是否启用
+            </th>
+            <td class="formValue" colspan="3">
+                @*<input id="FLAG" type="text" class="form-control" />*@
+                <div id="FLAG" type="selectTree" class="ui-select"></div>
+            </td>
+        </tr>
+        
+        <tr>
+            <th class="formTitle">
+                行政区划
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="ADMINISTRATIVECODE" type="selectTree" class="ui-select"></div>
+            </td>
+            <th class="formTitle">
+                编制床位数
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="BEDNUM" type="text" class="form-control" />
+            </td>
+           
+        </tr>
+        <tr>
+            <th class="formTitle">
+                单位地址
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="ADDRESS" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">
+                主办单位
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="HOSTUNIT" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            
+            <th class="formTitle">
+                实有床位数
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="REALBEDNUM" type="text" class="form-control" />
+            </td>
+            <th class="formTitle">
+                单位网址
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="COMPURL" type="text" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                机构级别
+            </th>
+            <td class="formValue" colspan="3">
+                <div id="ORGLEV" type="selectTree" class="ui-select"></div>
+                @*<input id="ORGLEV" type="text" class="form-control" />*@
+            </td>
+            <th class="formTitle">
+                租房面积
+            </th>
+            <td class="formValue" colspan="3">
+                <input id="RENTINGAREA" type="text" class="form-control" />
+            </td>
+            
+        </tr>
+        
+        <tr>
+            <th class="formTitle" valign="top" style="padding-top: 4px;">备注
+            </th>
+            <td class="formValue" colspan="7">
+                <textarea id="REMARK" class="form-control" style="height: 70px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "打印绩效基础方案";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .center-Panel {
+        margin: 10px !important;
+    }
+
+    .titlePanel {
+        text-align: center;
+    }
+
+        .titlePanel .title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+    #table {
+        height: auto;
+    }
+
+        #table .ui-jqgrid-bdiv {
+            height: auto !important;
+            overflow: hidden !important;
+        }
+</style>
+
+<script>
+    var title = decodeURI(getUrlParam('title')),
+        keyword = decodeURI(request('keyword')),
+        year = decodeURI(request('year')),
+        fabh = decodeURI(request('fabh')),
+        indicator1 = decodeURI(request('indicator1'));
+    $(function () {
+        $('.title').text(title);
+        GetGrid();
+    })
+    function GetGrid() {
+        var $kpiTable = $('#gridTable');
+        $kpiTable.jqGrid({
+            url: "../../PerfScheme/PerfSchemeSetting/GetKPIListJson",
+            datatype: "json",
+            postData: {
+                queryJson: JSON.stringify({
+                    print: true,
+                    keyword: keyword,
+                    year: year,
+                    fabh: fabh,
+                    indicator1: indicator1,
+                })
+            },
+            autowidth: true,
+            colModel: [
+                { label: "绩效年度", name: "JXND", index: "JXND", align: "center" },
+                { label: "一级指标", name: "FirstZBMC", index: "FirstZBMC", align: "center" },
+                { label: "二级指标", name: "SecZBMC", index: "SecZBMC", align: "center" },
+                { label: "三级指标", name: "ThirdZBMC", index: "ThirdZBMC", align: "center" },
+                { label: "三级指标编号", name: "ThirdZBBH", hidden: true },
+                { label: "指标类别", name: "ZBLB", hidden: true },
+                { label: "明细序号", name: "XH", hidden: true },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 200,//每页数量，Pagination的字段rows
+            rownumbers: true,//是否显示自增序号
+            pager: "#gridPager",
+            sortname: 'FirstZBBH',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            //rowList: [20, 50, 100],
+            gridview: true,
+            //multiselect: true,
+            gridComplete: function () {
+                //var rows = $("#" + this.id).getGridParam("records");
+                //for (var k = 1; k < rows + 1; k++) {
+                //    var rowData = $("#gridKPITable").jqGrid('getRowData', k);
+                //    if (rowData.XH != '') {
+                //        $("#" + this.id).setSelection(k, false);
+                //    }
+                //}
+            },
+            onSelectRow: function () {
+                //selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            }
+        });
+    }
+
+    function getUrlParam(name) {
+        // 取得url中?后面的字符
+        var query = window.location.search.substring(1);
+        // 把参数按&拆分成数组
+        var param_arr = query.split("&");
+        for (var i = 0; i < param_arr.length; i++) {
+            var pair = param_arr[i].split("=");
+            if (pair[0] == name) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+</script>
+
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="titlePanel">
+            <div class="title"></div>
+            @*<div class="toolbar">
+                    <div class="btn-group">
+                        <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                    </div>
+                </div>*@
+        </div>
+        <div id="table">
+            <table id="gridTable"></table>
+        </div>
+    </div>
+</div>

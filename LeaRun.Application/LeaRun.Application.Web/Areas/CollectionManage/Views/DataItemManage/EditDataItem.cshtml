@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = "编辑";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue { padding-left: 20px; }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function() {
+        initData();
+    });
+
+    //初始化控件
+    function initData() {
+        $("#TYPEID").ComboBoxTree({
+            description: "==请选择==",
+            height: "150px",
+            url: "../../CollectionManage/DataItemManage/GetCategoryTreeJson",
+            allowSearch: true
+        });
+
+        //频率名称
+        $("#YXPL").ComboBox({
+            url: "../../CollectionManage/DataItemManage/GetCjplJson",
+            param: {},
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+
+        //计算单位列表
+        $("#JLDW").ComboBox({
+            url: "../../CollectionManage/DataItemManage/GetUnitJson",
+            param: {},
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px",
+            allowSearch: true
+        });
+
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../CollectionManage/DataItemManage/GetDataItemJson",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#form1").SetWebControls(data);
+                    if (data.STATUS === "1")
+                        $('input:radio[name=STATUS]')[0].checked = true;
+                    else
+                        $('input:radio[name=STATUS]')[1].checked = true;
+                }
+            });
+
+            $("#TYPEID").attr("disabled", true);
+        }
+    }
+
+
+    //保存表单
+    function AcceptClick() {
+        debugger;
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData.STATUS = $('input[name="STATUS"]:checked').val();
+        debugger;
+        $.SaveForm({
+            url: "../../CollectionManage/DataItemManage/SaveForm",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+        return false;
+    }
+
+    function pageNumKeydown(e) {
+        debugger;
+        e = e || window.event;
+        // 判断当前用户按下的键是否是数字
+        // 如果e.keyCode 的值在 48-57 是数字
+        // 按下后退键  8，删除一个字符 
+        if ((e.keyCode < 48 || e.keyCode > 57 && e.keyCode < 96 || e.keyCode > 105) &&
+            e.keyCode !== 8 &&
+            e.keyCode !== 190) {
+            e.preventDefault();
+
+        }
+    }
+</script>
+
+<div style="margin: 20px;">
+    <table class="form">
+        <tr style="display: none">
+            <th class="formTitle">基础数据编码<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="JCSJBM" type="select" class="ui-select" isvalid="yes" checkexpession=""></div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>数据项名称：</th>
+            <td class="formValue">
+                <input id="JCSJMC" type="text" class="form-control" placeholder="基础数据项名称" isvalid="yes" checkexpession="NotNull"/>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>计量单位：</th>
+            <td class="formValue">
+                <div id="JLDW" type="select" isvalid="yes" class="ui-select" checkexpession="NotNull"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <th class="formTitle">运行频率：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="YXPL" type="select" isvalid="yes" class="ui-select">
+                </div>
+            </td>
+        </tr>
+        @*<tr>
+            <th class="formTitle"><font face="宋体">*</font>统计规则：</th>
+            <td class="formValue">
+                <input id="CJBQM" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" />
+            </td>
+        </tr>*@
+        <tr>
+            <th class="formTitle"><font face="宋体">*</font>调节系数：</th>
+            <td class="formValue">
+                <input id="TJXS" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" onkeydown="pageNumKeydown(event); " onafterpaste="this.value=this.value.replace(/[^\d]/g,'')"/>
+            </td>
+        </tr>
+
+        <tr>
+            <th class="formTitle">所属分类：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="TYPEID" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        @*<tr>
+            <th class="formTitle">一级分类：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="FirstCategoryId" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">二级分类：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="SecondCategoryId" type="select" isvalid="yes" class="ui-select">
+                </div>
+            </td>
+        </tr>*@
+        <tr>
+            <th class="formTitle">是否有效：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div style="display: inline-block;" class="rdio rdio-color_c">
+                    <input type="radio" name="STATUS" value="1" checked="checked"/><label for="STATUS1">有效</label>
+                </div>
+                <div style="display: inline-block; padding-right: 30px;" class="rdio rdio-color_a">
+                    <input type="radio" name="STATUS" value="0"/><label for="STATUS0">无效</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="formTitle">排序：<font face="宋体">*</font></td>
+            <td class="formValue">
+                <input id="PX" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" onkeydown="pageNumKeydown(event); " onafterpaste="this.value=this.value.replace(/[^\d]/g,'')"/>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">
+                备注：
+            </th>
+            <td class="formValue">
+                <textarea id="REMARK" class="form-control" style="height: 50px;"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

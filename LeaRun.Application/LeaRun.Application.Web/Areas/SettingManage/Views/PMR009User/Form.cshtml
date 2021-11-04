@@ -1,0 +1,386 @@
+﻿@{
+    ViewBag.Title = "医疗卫生人员表管理";
+    Layout = "~/Views/Shared/_FlowForm.cshtml";
+}
+<script>
+    var keyValue = request('keyValue');
+    var organizeId = request('ORGID');
+    var parentId = request('parentId');
+    var parentName =request('parentName');
+    $(function () {
+        initControl();
+    })
+    //初始化控件
+    function initControl() {
+      
+        //1国籍
+        $("#COUNTRYCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "国籍代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //2民族
+        $("#NATIONALITYCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "民族代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //3证件类别
+        $("#CARDTYPE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "身份证件类别代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //4学历
+        $("#EDUCATION").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "学历代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //5学位
+        $("#DEGREE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "学位代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //5性别
+        $("#SEX").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "性别代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //6婚姻状况
+        $("#MARRIAGECODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "婚姻状况" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //7岗位
+        $("#POST").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医院人员岗位代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //8管理职务
+        $("#DUTYCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "医院人员职务代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //9专业职务
+        $("#MDUTYCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "专业技术职务代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //10专业职称
+        $("#PROFESSIONALCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "专业技术职称" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //11专业
+        $("#CAREERCODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "所学专业代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //12执业类别
+        $("#LICENSECODE").ComboBox({
+            url: "../../SettingManage/Dictionary/GeCodeListJson",
+            param: { TypeName: "执业类别代码" },
+            id: "CODE",
+            text: "NAME",
+            description: "==请选择==",
+            height: "200px"
+        });
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../SettingManage/PMR009User/GetFormJson",
+                param: { keyValue: keyValue },
+                success: function (data) {
+                    $("#form1").SetWebControls(data);
+                }
+            });
+        }
+    }
+    //保存表单
+    function AcceptClick() {
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        postData["PROFESSIONALNAME"] = $("#PROFESSIONALCODE").attr('data-text');
+        postData["CAREERNAME"] = $("#CAREERCODE").attr('data-text');
+        postData["MDUTIES"] = $("#MDUTYCODE").attr('data-text');
+        postData["DUTIES"] = $("#DUTYCODE").attr('data-text');
+        if (postData["Birthday"] == "&nbsp;") {
+            postData["Birthday"] = "";
+        }
+        if (postData["BIRTHDAY"] == "&nbsp;") {
+            postData["BIRTHDAY"] = "";
+        }
+        if (postData["EFFAT"] == "&nbsp;") {
+            postData["EFFAT"] = "";
+        }
+        if (postData["EXPAT"] == "&nbsp;") {
+            postData["EXPAT"] = "";
+        }
+        postData["ORGID"] = organizeId;
+        postData["SECTIONOFFICECODE"] = parentId;
+        postData["SECTIONOFFICE"] = parentName;
+        $.SaveForm({
+            url: "../../SettingManage/PMR009User/SaveForm?keyValue=" + keyValue,
+            param: postData,
+            loading: "正在保存数据...",
+            success: function (data) {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+<div style="margin-left: 10px; margin-top: 20px; margin-right: 30px;">
+
+        <table class="form">
+            @*<tr>
+                    <td class="formTitle">账户<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="Account" type="text" onblur="$.ExistField(this.id,'../../BaseManage/User/ExistAccount')" class="form-control" placeholder="请输入账户" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                    <td class="formTitle">密码<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="Password" type="text" class="form-control" placeholder="请输入密码" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">姓名<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <div id="OrganizeId" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                    </td>
+                    <td class="formTitle">部门<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <div id="DepartmentId" type="selectTree" class="ui-select" isvalid="yes" checkexpession="NotNull"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">岗位</td>
+                    <td class="formValue">
+                        <div id="DutyId" type="select" class="ui-select"></div>
+                    </td>
+                    <td class="formTitle">职位</td>
+                    <td class="formValue">
+                        <div id="PostId" type="select" class="ui-select"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">角色</td>
+                    <td class="formValue">
+                        <div id="RoleId" type="select" class="ui-select"></div>
+                    </td>
+                    <td class="formTitle">主管</td>
+                    <td class="formValue">
+                        <div id="ManagerId" type="select" class="ui-select"></div>
+                    </td>
+                </tr>*@
+            <tr>
+                <td class="formTitle">姓名<font face="宋体">*</font></td>
+                <td class="formValue">
+                    <input id="NAME" type="text" class="form-control" placeholder="请输入姓名" isvalid="yes" checkexpession="NotNull" />
+                </td>
+                <td class="formTitle">国籍</td>
+                <td class="formValue">
+                    <div id="COUNTRYCODE" type="select" class="ui-select"></div>
+                </td>
+
+            </tr>
+            <tr>
+                <td class="formTitle">民族</td>
+                <td class="formValue">
+                    <div id="NATIONALITYCODE" type="select" class="ui-select"></div>
+                </td>
+                <td class="formTitle">证件类型<font face="宋体">*</font></td>
+                <td class="formValue">
+                    <div id="CARDTYPE" type="select" class="ui-select" checkexpession="NotNull"></div>
+                </td>
+
+            </tr>
+            <tr>
+                <td class="formTitle">证件号码<font face="宋体">*</font></td>
+                <td class="formValue">
+                    <input id="CARDCODE" type="text" class="form-control" placeholder="请输入证件号码" isvalid="yes" checkexpession="NotNull" />
+                </td>
+                <td class="formTitle">婚姻状况</td>
+                <td class="formValue">
+                    <div id="MARRIAGECODE" type="select" class="ui-select"></div>
+                </td>
+
+            </tr>
+            <tr>
+                <td class="formTitle">性别</td>
+                <td class="formValue">
+                    <div id="SEX" type="select" class="ui-select"></div>
+                    
+                </td>
+                <td class="formTitle">生日</td>
+                <td class="formValue">
+                    <input id="BIRTHDAY" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+                </td>
+            </tr>
+            <tr>
+                <td class="formTitle">学历</td>
+                <td class="formValue">
+                    <div id="EDUCATION" type="select" class="ui-select"></div>
+                </td>
+                <td class="formTitle">学位</td>
+                <td class="formValue">
+                    <div id="DEGREE" type="select" class="ui-select"></div>
+                </td>
+
+            </tr>
+            <tr>
+                
+                <td class="formTitle">邮箱</td>
+                <td class="formValue">
+                    <input id="EMAIL" type="text" class="form-control" />
+                </td>
+                <td class="formTitle">参加工作日期</td>
+                <td class="formValue">
+                    <input id="WORKAT" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+                </td>
+
+            </tr>
+            <tr>
+                <td class="formTitle">工作电话</td>
+                <td class="formValue">
+                    <input id="WORKTEL" type="text" class="form-control" />
+                </td>
+                <td class="formTitle">家庭电话</td>
+                <td class="formValue">
+                    <input id="TEL" type="text" class="form-control" />
+                </td>
+            </tr>
+           
+            <tr>
+                <td class="formTitle">管理职务</td>
+                <td class="formValue">
+                    <div id="DUTYCODE" type="select" class="ui-select"></div>
+                </td>
+                <td class="formTitle">所学专业</td>
+                <td class="formValue">
+                    <div id="CAREERCODE" type="select" class="ui-select"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="formTitle">专业职务</td>
+                <td class="formValue">
+                 
+                    <div id="MDUTYCODE" type="select" class="ui-select"></div>
+                </td>
+                <td class="formTitle">专业职称</td>
+                <td class="formValue">
+                    <div id="PROFESSIONALCODE" type="select" class="ui-select"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="formTitle">执业类别</td>
+                <td class="formValue">
+ 
+                    <div id="LICENSECODE" type="select" class="ui-select"></div>
+                </td>
+                <td class="formTitle">执业证编号</td>
+                <td class="formValue">
+                    @*<div id="LICENSE" type="select" class="ui-select"></div>*@
+                    <input id="LICENSE" type="text" class="form-control" />
+                </td>
+
+            </tr>
+            <tr>
+
+
+                <td class="formTitle">岗位</td>
+                <td class="formValue">
+                    <div id="POST" type="select" class="ui-select"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="formTitle">生效日期</td>
+                <td class="formValue">
+                    <input id="EFFAT" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+                </td>
+
+                <td class="formTitle">失效日期</td>
+                <td class="formValue">
+                    <input id="EXPAT" type="text" class="form-control input-wdatepicker" onfocus="WdatePicker()" />
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle" valign="top" style="padding-top: 4px;">
+                    家庭地址
+                </th>
+                <td class="formValue" colspan="3">
+                    <textarea id="ADDRESS" class="form-control" style="height: 50px;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <th class="formTitle" valign="top" style="padding-top: 4px;">
+                    备注
+                </th>
+                <td class="formValue" colspan="3">
+                    <textarea id="REMARK" class="form-control" style="height: 50px;"></textarea>
+                </td>
+            </tr>
+        </table>
+ 
+</div>
+
+

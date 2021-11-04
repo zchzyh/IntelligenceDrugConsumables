@@ -1,0 +1,118 @@
+﻿@{
+    ViewBag.Title = "编辑关健成功因素";
+    Layout = "~/Views/Shared/_Form.cshtml";
+}
+
+<style>
+    .form td.formValue {
+        padding-left: 20px;
+    }
+</style>
+
+<script>
+    var keyValue = request('keyValue');
+    $(function() {
+        initData();
+    });
+
+    //初始化控件
+    function initData() {
+
+        //年度
+        $("#JXBM").ComboBox({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: { forSearch: false },
+            id: "ItemValue",
+            text: "ItemText",
+            description: "==请选择==",
+            height: "100px"
+
+        }).bind("change", function () {
+                getThemeList($(this).attr('data-value'));
+            }
+        );
+
+        getThemeList($("#JXBM").val());
+
+        //获取表单
+        if (!!keyValue) {
+            $.SetForm({
+                url: "../../PerfStrategy/CriticalSuccessFactor/GetRecordModelJson",
+                param: { keyValue: keyValue },
+                success: function(data) {
+                    $("#form1").SetWebControls(data);
+                }
+            });
+
+        }
+    }
+    function getThemeList(jxbm) {
+        $("#ZTBH").html('');
+        $("#ZTBH").attr('data-value','');
+        var value = jxbm;
+        $("#ZTBH").ComboBox({
+            url: "../../PerfStrategy/StrategicThemes/GetListByYear",
+            param: { jxbm: value },
+            id: "ZTBH",
+            text: "ZTMC",
+            description: "==请选择==",
+            height: "100px"
+        });
+    }
+
+    //保存表单
+    function AcceptClick() {
+
+        debugger;
+        if (!$('#form1').Validform()) {
+            return false;
+        }
+        var postData = $("#form1").GetWebControls(keyValue);
+        $.SaveForm({
+            url: "../../PerfStrategy/CriticalSuccessFactor/SaveForm",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div style="margin-top: 20px; margin-right: 30px;">
+    <table class="form">
+        <tr style="display: none">
+            <th class="formTitle">CSF编号<font face="宋体">*</font></th>
+            <td class="formValue">
+                <input id="CSFBH" type="text" class="form-control" placeholder="" />
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">绩效年度：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="JXBM" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        @*<tr>
+            <th class="formTitle">使命：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="SMBH" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>*@
+        <tr>
+            <th class="formTitle">战略主题：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <div id="ZTBH" type="select" class="ui-select" isvalid="yes" checkexpession="NotNull">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th class="formTitle">关键成功因素：<font face="宋体">*</font></th>
+            <td class="formValue">
+                <textarea id="CSFMC" class="form-control" style="height: 60px;" isvalid="yes" checkexpession="NotNull"></textarea>
+            </td>
+        </tr>
+    </table>
+</div>

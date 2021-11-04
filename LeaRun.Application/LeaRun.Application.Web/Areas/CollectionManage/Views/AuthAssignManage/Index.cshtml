@@ -1,0 +1,222 @@
+﻿@{
+    ViewBag.Title = "采集权限分配";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    var userId = '';
+    $(function () {
+        getYearSetting();
+        getGridTable();
+        InitialPage();
+    });
+
+    //初始化页面
+    function InitialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function(e) {
+            window.setTimeout(function() {
+                    resizePage();
+                },
+                200);
+            e.stopPropagation();
+        });
+
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 150);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+        $("#itemTree").height($(window).height() - 150);
+    };
+
+    function getTableTree(userId) {
+        var item = {
+            height: 540,
+            showcheck: true,
+            //   url: "../../AuthorizeManage/PermissionRole/ModuleTreeJson?roleId=" + roleId
+            url: "../../CollectionManage/AuthAssignManage/GetAuthTreeList?userId=" +
+                userId +
+                "&year=" +
+                $("#JXND .dropdown-text").html()
+        };
+        $("#itemTree").treeview(item);
+        resizePage();
+    }
+
+    function getYearSetting() {
+        //加载年度数据
+        $.SetForm({
+            url: "../../PerfConfig/YearSetting/GetYearBmsJson",
+            param: {},
+            success: function(data) {
+                $.each(data,
+                    function(id, item) {
+                        if (item.ItemValue === '') return;
+                        var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                        $('#JXND').find('ul').append(row);
+                    });
+                //年度选中，生成查询条件
+                $("#JXND .dropdown-menu li").click(function() {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#JXND .dropdown-text").html(text).attr('data-value', value);
+                    var userId=$("#gridTable").jqGridRowValue("UserId");
+                    getTableTree(userId);
+                });
+                $("#JXND .dropdown-menu li").find('a[data-value=@ViewBag.ActionYear]').click();
+            }
+
+        });
+    }
+
+    var selectedRowIndex = 1;
+
+    //加载表格
+    function getGridTable() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../CollectionManage/AuthAssignManage/GetPageList",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                //{ label: "主键", name: "UserId", hidden: true },
+                {
+                    label: "用户账号",
+                    name: "UserId",
+                    index: "UserId"
+                },
+                { label: "用户名", name: "UserName", index: "UserName" },
+                { label: "授权角色", name: "RoleName", index: "RoleName" },
+                { label: "联系电话", name: "Phone", index: "Phone", align: "center" },
+                { label: "部门", name: "DeptName", index: "DeptName", width: "180" },
+                {
+                    label: "是否激活",
+                    name: "Status",
+                    index: "Status",
+                    align: "center",
+                    width: "100",
+                    formatter: function(cellvalue, options, rowObject) {
+                        return cellvalue === "0" ? "否" : "是";
+                    }
+                }
+            ],
+            viewrecords: true, //显示检索记录
+            rowNum: 30, //每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'UserId', //排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc', //排序方式，Pagination的字段sord，默认asc
+            rownumbers: true, //是否显示自增序号
+            onSelectRow: function() {
+                //debugger;
+                //selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+                userId = $("#" + this.id).jqGridRowValue("UserId");
+                getTableTree(userId);
+            },
+            gridComplete: function() {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+                userId = $("#" + this.id).jqGridRowValue("UserId");
+                getTableTree(userId);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function() {
+            var queryJson = {
+                depName: $("#DeptName").val(),
+                userId: $("#UserId").val(),
+                userName: $("#UserName").val()
+            }
+            $gridTable.jqGrid('setGridParam',
+                {
+                    postData: { queryJson: JSON.stringify(queryJson) }
+                }).trigger('reloadGrid');
+        });
+    }
+
+    function saveData() {
+        debugger;
+        var tablesIds = String($("#itemTree").getCheckedNodes());
+        var postData = {
+            userId: userId,
+            year: $("#JXND .dropdown-text").html(),
+            tableIds: tablesIds
+        };
+        if (tablesIds === "null") {
+            dialogAlert("请选择年度记录");
+            return;
+        }
+
+        $.SaveForm({
+            url: "../../CollectionManage/AuthAssignManage/SaveData",
+            param: postData,
+            loading: "正在保存数据...",
+            success: function() {
+                $.currentIframe().$("#gridTable").trigger("reloadGrid");
+            }
+        });
+    }
+</script>
+
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="ui-layout-center" style="width: 100%; float: left;">
+        <div class="center-Panel">
+            <div class="titlePanel">
+                <div class="title-search">
+                    <table>
+                        <tr>
+                            <td>
+                                <input id="DeptName" type="text" class="form-control" placeholder="部门" style="width: 200px;"/>
+                            </td>
+                            <td>
+                                <input id="UserId" type="text" class="form-control" placeholder="账号" style="width: 200px;"/>
+                            </td>
+                            <td>
+                                <input id="UserName" type="text" class="form-control" placeholder="用户名" style="width: 200px;"/>
+                            </td>
+                            <td style="padding-left: 5px;">
+                                <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="ui-layout-center" style="width: 70%; float: left; padding-top: 5px">
+                <div class="gridPanel">
+                    <table id="gridTable"></table>
+                    <div id="gridPager"></div>
+                </div>
+            </div>
+            <div class="ui-layout-west" style="width: 30%; float: left; padding-top: 5px">
+                <div class="west-Panel" style="padding-left: 10px; padding-top: 8px; margin-top: 0px;">
+                    <div>
+
+                        <table>
+                            <tr>
+                                <td>绩效年度:</td>
+                                <td style="padding: 5px">
+                                    <div id="JXND" class="btn-group" style="height: 30px">
+                                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择绩效年度</a>
+                                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <span class="caret"></span>
+                                        </a>
+                                        <ul class="dropdown-menu"></ul>
+                                    </div>
+                                </td>
+                                <td style="padding: 5px">
+                                    <input id="btnSave" type="button" onclick="saveData()" class="btn btn-primary" style="height: 30px" value="保存权限"/>
+                                </td>
+                            </tr>
+                        </table>
+
+
+                    </div>
+                    <div id="itemTree" style="margin: 10px;">请选择左边列表</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
