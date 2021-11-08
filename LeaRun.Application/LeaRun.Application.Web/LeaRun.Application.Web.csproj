@@ -1490,6 +1490,7 @@
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugCallInfo.cshtml" />
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugCodeMapping.cshtml" />
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugHospitalInfo.cshtml" />
+    <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugStandardEdit.cshtml" />
     <None Include="Properties\PublishProfiles\6.1.pubxml" />
     <Content Include="Areas\FlowManage\Views\FlowLaunch\Index.cshtml" />
     <Content Include="Areas\FlowManage\Views\FormDesign\FormPreview.cshtml" />

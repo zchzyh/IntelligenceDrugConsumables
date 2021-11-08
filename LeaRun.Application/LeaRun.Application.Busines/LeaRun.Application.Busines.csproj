@@ -117,6 +117,7 @@
     <Compile Include="CustomerManage\OrderEntryBLL.cs" />
     <Compile Include="DataAnalysis\DataAnalysisBLL.cs" />
     <Compile Include="DemoManage\OfficeRkBLL.cs" />
+    <Compile Include="DrugConsumableManage\DrugManageBLL.cs" />
     <Compile Include="FlowManage\WFDelegate.cs" />
     <Compile Include="FlowManage\WFRuntimeBLL.cs" />
     <Compile Include="FlowManage\WFSchemeInfoBLL.cs" />
