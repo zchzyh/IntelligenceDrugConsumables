@@ -119,7 +119,9 @@ namespace LeaRun.Application.Entity.CollectionManage
         /// </summary>
         public string STATUS { get; set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Create()
         {
             this.XH = DateTime.Now.ToString("yyyyMMddHHmmssfff");

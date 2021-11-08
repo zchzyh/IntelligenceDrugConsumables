@@ -139,6 +139,7 @@ namespace LeaRun.Application.Web.Areas.PerfScheme.Controllers
         public ActionResult GetPerfSchemeListJson(Pagination pagination, string queryJson)
         {
             var metas = bll.GetPerfSchemedataList(pagination, queryJson);
+            var a = ToJsonResult(metas);
             return ToJsonResult(metas);
         }
         /// <summary>

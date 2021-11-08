@@ -4066,6 +4066,107 @@
             保留位数（默认5）
             </summary>
         </member>
+        <member name="T:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity">
+            <summary>
+             [Drug_Standard]    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_Code">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_Name_ZC">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_JX">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_GG">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_Name_SP">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_BZCZ">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_BZ_Min">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_BZ_Unit">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_BZ_Unit_ZJ">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_QY_Code">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_PZWH">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_BWM">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_YB_Type">
+            <summary>
+            甲乙类    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_YB_Code">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_YB_Name">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_YB_JX">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="P:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Drug_YB_Comment">
+            <summary>
+            无    
+            </summary>
+        </member>
+        <member name="M:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Create">
+            <summary>
+            新增调用
+            </summary>
+        </member>
+        <member name="M:LeaRun.Application.Entity.DrugConsumableManage.DrugStandardEntity.Modify(System.String)">
+            <summary>
+            编辑调用
+            </summary>
+            <param name="keyvalue"></param>
+        </member>
         <member name="T:LeaRun.Application.Entity.PerfConfig.BpeEA001Entity">
             <summary>
             指标等级信息表

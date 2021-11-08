@@ -12,7 +12,7 @@ namespace LeaRun.Application.Entity.AuthorizeManage.ViewModel
     /// 创建人：Admin
     /// 日 期：2015.11.27
     /// 描 述：授权功能Url、操作Url
-    /// </summary
+    /// </summary>
     public class AuthorizeUrlModel
     {
         /// <summary>

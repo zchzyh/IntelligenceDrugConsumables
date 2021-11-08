@@ -132,7 +132,9 @@ namespace LeaRun.Application.Entity.CollectionManage
             get{return _status;}
         }
         #endregion
-
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Create()
         {
             this.XH = DateTime.Now.ToString("yyyyMMddHHmmssfff");

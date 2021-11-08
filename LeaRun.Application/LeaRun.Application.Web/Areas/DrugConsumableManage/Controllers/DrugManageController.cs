@@ -1,4 +1,8 @@
-﻿using System;
+﻿using LeaRun.Application.Busines.DrugConsumableManage;
+using LeaRun.Application.Entity.DrugConsumableManage;
+using LeaRun.Util.WebControl;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,6 +12,12 @@ namespace LeaRun.Application.Web.Areas.DrugConsumableManage.Controllers
 {
     public class DrugManageController : MvcControllerBase
     {
+        DrugManageBLL drugmanagebll;
+
+        public DrugManageController()
+        {
+            drugmanagebll = new DrugManageBLL();
+        }
         //
         // GET: /DrugConsumableManage/DrugManage/
 
@@ -40,6 +50,15 @@ namespace LeaRun.Application.Web.Areas.DrugConsumableManage.Controllers
             items.Add("1002", "广东省药品目录");
 
             return ToJsonResult(SetComboBoxValue(items));
+        }
+
+        
+        [HttpGet]
+        public ActionResult GetDrugList(Pagination pagination, string queryJson)
+        {
+            var druglist = drugmanagebll.GetDrugStandardList(pagination, queryJson);
+
+            return ToJsonResult(druglist);
         }
     }
 }

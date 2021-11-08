@@ -74,6 +74,7 @@
     <Compile Include="CollectionManage\ViewModel\ApplyModel.cs" />
     <Compile Include="CollectionManage\ViewModel\TableRowModel.cs" />
     <Compile Include="DecimalPrecisionAttribute.cs" />
+    <Compile Include="DrugConsumableManage\DrugStandardEntity.cs" />
     <Compile Include="PerfConfig\BpeEA001Entity.cs" />
     <Compile Include="PerfConfig\BpeEA002Entity.cs" />
     <Compile Include="CollectionManage\Ex\BpcSm003EntityEx.cs" />

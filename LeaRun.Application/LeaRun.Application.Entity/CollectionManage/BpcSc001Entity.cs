@@ -78,7 +78,9 @@ namespace LeaRun.Application.Entity.CollectionManage
         /// </summary>
         public string STATUS { get; set; }
 
-
+        /// <summary>
+        /// 22
+        /// </summary>
         public override void Create()
         {
             this.HXBM = DateTime.Now.ToString("yyyyMMddHHmmssfff");

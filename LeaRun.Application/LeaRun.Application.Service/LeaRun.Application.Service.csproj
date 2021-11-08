@@ -106,6 +106,7 @@
     <Compile Include="CustomerManage\ReceivableReportService.cs" />
     <Compile Include="DataAnalysis\DataAnalysisService.cs" />
     <Compile Include="DemoManage\OfficeRkService.cs" />
+    <Compile Include="DrugConsumableManage\DrugStandardService.cs" />
     <Compile Include="FlowManage\WFDelegateRecordService.cs" />
     <Compile Include="FlowManage\WFDelegateRuleService.cs" />
     <Compile Include="FlowManage\WFProcessInstanceService.cs" />
