@@ -71,8 +71,8 @@
             autowidth: true,
             colModel: [
                 { label: "药品代码", name: "Drug_Code", index:"Drug_Code",lign:"center" },
-                { label: "药品名称", name: "Drug_Name_SP", index: "Drug_Name_SP", align: "center" },
                 { label: "注册名称", name: "Drug_Name_ZC", index: "Drug_Name_ZC", align: "center" },
+                { label: "商品名称", name: "Drug_Name_SP", index: "Drug_Name_SP", align: "center" },
                 { label: "注册剂型", name: "Drug_JX", index: "Drug_JX", align: "center" },
                 { label: "注册规格", name: "Drug_GG", index: "YPDrug_GG", align: "center" },
                 { label: "包装材质", name: "Drug_BZCZ", index: "Drug_BZCZ", align: "center" },
@@ -118,7 +118,7 @@
             title: '新增标准药品信息',
             url: '/DrugConsumableManage/DrugManage/DrugStandardEdit',
             width: "1200px",
-            height: "600px",
+            height: "800px",
             callBack: function (iframeId) {
                 top.frames[iframeId].AcceptClick();
             }
@@ -126,34 +126,21 @@
     };
     //编辑
     function btn_edit() {
-        var keyValue = $("#gridTable").jqGridRowValue("Drug_Code");
-        if (checkedRow(keyValue)) {
-            dialogOpen({
-                id: "Form",
-                title: '编辑药品信息',
-                url: '/PerfConfig/YearSetting/EditYear?keyValue=' + keyValue,
-                width: "500px",
-                height: "400px",
-                callBack: function (iframeId) {
-                    top.frames[iframeId].AcceptClick();
-                }
-            });
-        }
+        dialogOpen({
+            id: "Form",
+            title: '修改标准药品信息',
+            url: '/DrugConsumableManage/DrugManage/DrugStandardEdit',
+            width: "1200px",
+            height: "800px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+
     }
     //删除
     function btn_delete() {
-        var keyValue = $("#gridTable").jqGridRowValue("Drug_Code");
-        if (keyValue) {
-            $.RemoveForm({
-                url: "../../PerfConfig/YearSetting/DelYear",
-                param: { keyValue: keyValue },
-                success: function (data) {
-                    $("#gridTable").trigger("reloadGrid");
-                }
-            });
-        } else {
-            dialogMsg('请选择需要删除的药品', 0);
-        }
+
     }
 </script>
 <div class="titlePanel">
@@ -169,6 +156,12 @@
                 </td>
                 <td style="padding-left: 5px;">
                     <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;导入标准药品库</a>
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;导出标准药品库</a>
                 </td>
             </tr>
         </table>

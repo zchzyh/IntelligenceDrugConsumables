@@ -45,6 +45,10 @@ namespace LeaRun.Application.Web.Areas.DrugConsumableManage.Controllers
             return View();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public ActionResult GetDrugType()
         {
@@ -55,14 +59,45 @@ namespace LeaRun.Application.Web.Areas.DrugConsumableManage.Controllers
 
             return ToJsonResult(SetComboBoxValue(items));
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public ActionResult GetDrugCompanyType()
+        {
+            var items = new Dictionary<string, string>();
 
-        
+            items.Add("1001", "金仕达药品目录字典");
+            items.Add("1002", "东软药品目录字典");
+
+            return ToJsonResult(SetComboBoxValue(items));
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pagination"></param>
+        /// <param name="queryJson"></param>
+        /// <returns></returns>
         [HttpGet]
         public ActionResult GetDrugList(Pagination pagination, string queryJson)
         {
             var druglist = drugmanagebll.GetDrugStandardList(pagination, queryJson);
 
             return ToJsonResult(druglist);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pagination"></param>
+        /// <param name="queryJson"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public ActionResult GetCompanyDrugList(Pagination pagination, string queryJson)
+        {
+            var companydruglist = drugmanagebll.GetCompanyDrugList(pagination, queryJson);
+
+            return ToJsonResult(companydruglist);
         }
     }
 }

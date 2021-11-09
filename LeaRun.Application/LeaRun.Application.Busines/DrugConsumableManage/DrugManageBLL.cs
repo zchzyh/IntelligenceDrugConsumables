@@ -22,6 +22,16 @@ namespace LeaRun.Application.Busines.DrugConsumableManage
         {
             return drugmanageservice.GetList(pagination, queryJson);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pagination"></param>
+        /// <param name="queryJson"></param>
+        /// <returns></returns>
+        public IEnumerable<DrugCompanyEntity> GetCompanyDrugList(Pagination pagination, string queryJson)
+        {
+            return drugmanageservice.GetCompanyDrugList(pagination, queryJson);
+        }
 
     }
 }

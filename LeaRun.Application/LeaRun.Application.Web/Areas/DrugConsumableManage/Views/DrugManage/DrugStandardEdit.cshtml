@@ -83,17 +83,14 @@
             <tr>
                 <td>
                     <div id="queryCondition" class="btn-group">
-                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择条件</a>
+                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择包装版本号</a>
                         <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li><a data-value="Account">账户</a></li>
-                            <li><a data-value="RealName">姓名</a></li>
-                            <li><a data-value="Mobile">手机</a></li>
+                            <li><a data-value="Account">V0.001</a></li>
+                            <li><a data-value="RealName">V0.002</a></li>
+                            <li><a data-value="Mobile">V0.003</a></li>
                         </ul>
                     </div>
-                </td>
-                <td style="padding-left: 2px;">
-                    <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入要查询关键字" style="width: 200px;" />
                 </td>
                 <td style="padding-left: 5px;">
                     <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
@@ -102,10 +99,12 @@
         </table>
     </div>
 </div>
-<div style="margin-left: 10px; margin-right: 10px;">
+<div style="margin-left: 10px; margin-right: 10px;height:460px">
     <ul class="nav nav-tabs">
         <li class="active"><a href="#BaseInfo" data-toggle="tab">基本信息</a></li>
-        <li><a href="#ExpandInfo" data-toggle="tab">扩展属性</a></li>
+        <li><a href="#ExpandInfo" data-toggle="tab">包装信息</a></li>
+        <li><a href="#yibaoInfo" data-toggle="tab">医保信息</a></li>
+        <li><a href="#companyInfo" data-toggle="tab">厂商信息</a></li>
     </ul>
     <div class="tab-content" style="padding-top: 15px;">
         <div id="BaseInfo" class="tab-pane active" style=" padding-right: 30px;">
@@ -167,9 +166,110 @@
                     </td>
                     <td class="formTitle">药品本位码</td>
                     <td class="formValue">
-                        <input id="Birthday" type="text" class="form-control"/>
+                        <input id="Birthday" type="text" class="form-control" />
                     </td>
                 </tr>
+            </table>
+        </div>
+        <div id="ExpandInfo" class="tab-pane " style=" padding-right: 30px;">
+            <table class="form">
+                <tr>
+                    <td class="formTitle">包装版本号</td>
+                    <td class="formValue">         
+                        <div id="queryCondition" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown"></a>
+                            <ul class="dropdown-menu">
+                                <li><a data-value="Account">V0.001</a></li>
+                                <li><a data-value="RealName">V0.002</a></li>
+                                <li><a data-value="Mobile">V0.003</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">箱装单位<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="Account" type="text" onblur="$.ExistField(this.id,'../../BaseManage/User/ExistAccount')" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                    <td class="formTitle">空箱系数<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="Password" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">整重<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <div id="OrganizeId" type="text" class="form-control" isvalid="yes" checkexpession="NotNull"></div>
+                    </td>
+                    <td class="formTitle">空箱重量<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <div id="DepartmentId" type="text" class="form-control" isvalid="yes" checkexpession="NotNull"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">大包装单位</td>
+                    <td class="formValue">
+                        <div id="DutyId" type="text" class="form-control"></div>
+                    </td>
+                    <td class="formTitle">大包装系数</td>
+                    <td class="formValue">
+                        <div id="PostId" type="text" class="form-control"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">大包装整重</td>
+                    <td class="formValue">
+                        <div id="RoleId" type="text" class="form-control"></div>
+                    </td>
+                    <td class="formTitle">大包装空重</td>
+                    <td class="formValue">
+                        <div id="ManagerId" type="text" class="form-control"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">中包装单位</td>
+                    <td class="formValue">
+                        <input id="EnCode" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">中包装系数<font face="宋体">*</font></td>
+                    <td class="formValue">
+                        <input id="RealName" type="text" class="form-control" placeholder="" isvalid="yes" checkexpession="NotNull" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">中包装整重</td>
+                    <td class="formValue">
+                        <div id="Gender" type="text" class="form-control"></div>
+                    </td>
+                    <td class="formTitle">中包装空重</td>
+                    <td class="formValue">
+                        <input id="Birthday" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">小包装单位</td>
+                    <td class="formValue">
+                        <input id="Mobile" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">小包装系数</td>
+                    <td class="formValue">
+                        <input id="Telephone" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">小包装整重</td>
+                    <td class="formValue">
+                        <input id="Email" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">小包装空重</td>
+                    <td class="formValue">
+                        <input id="WeChat" type="text" class="form-control" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="yibaoInfo" class="tab-pane active" style=" padding-right: 30px;">
+            <table class="form">
                 <tr>
                     <td class="formTitle">医保甲乙类</td>
                     <td class="formValue">
@@ -191,7 +291,17 @@
                         <input id="WeChat" type="text" class="form-control" />
                     </td>
                 </tr>
+                <tr>
+                    <td class="formTitle">药品</td>
+                    <td class="formValue">
+                        <input id="Email" type="text" class="form-control" />
+                    </td>
 
+                    <td class="formTitle">医保药品剂型</td>
+                    <td class="formValue">
+                        <input id="WeChat" type="text" class="form-control" />
+                    </td>
+                </tr>
                 <tr>
                     <th class="formTitle" valign="top" style="padding-top: 4px;">
                         医保备注
@@ -202,9 +312,80 @@
                 </tr>
             </table>
         </div>
-        <div id="ExpandInfo" class="tab-pane ">
-            <div class="app_layout app_preview" style="border-top: 1px solid #ccc;" id="frmpreview"></div>
+        <div id="companyInfo" class="tab-pane active" style=" padding-right: 30px;">
+            <table class="form">
+                <tr>
+                    <td class="formTitle">厂商代码</td>
+                    <td class="formValue">
+                        <input id="Mobile" type="text" class="form-control" />
+                    </td>
+                    <td class="formTitle">厂商名称</td>
+                    <td class="formValue">
+                        <input id="Telephone" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">拼音</td>
+                    <td class="formValue">
+                        <input id="Email" type="text" class="form-control" />
+                    </td>
+
+                    <td class="formTitle">五笔</td>
+                    <td class="formValue">
+                        <input id="WeChat" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">地区代码</td>
+                    <td class="formValue">
+                        <input id="Email" type="text" class="form-control" />
+                    </td>
+
+                    <td class="formTitle">地区名称</td>
+                    <td class="formValue">
+                        <input id="WeChat" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="formTitle">厂商地址</td>
+                    <td class="formValue">
+                        <input id="Email" type="text" class="form-control" />
+                    </td>
+
+                    <td class="formTitle">厂商电话</td>
+                    <td class="formValue">
+                        <input id="WeChat" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle" valign="top" style="padding-top: 4px;">
+                        厂商备注
+                    </th>
+                    <td class="formValue" colspan="3">
+                        <textarea id="Description" class="form-control" style="height: 50px;"></textarea>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>
-
+<div style="margin-left: 10px; margin-right: 10px; margin-bottom:0px">
+    <table  class="form">
+        <tr>
+            <td class="FormGrid" align="center">大包装图片<font face="宋体">*</font></td>
+            <td class="FormGrid" align="center">中包装图片<font face="宋体">*</font></td>
+            <td class="FormGrid" align="center">小包装图片<font face="宋体">*</font></td>
+        </tr>
+        <tr>
+            <td class="formValue" align="center">
+                <img id="icon-vension" src="~/Content/Images/药品包装1.png" style="height: 180px; align-self:center;align-content:center;align-items:center">
+            </td>
+            <td class="formValue" align="center">
+                <img id="icon-vension" src="~/Content/Images/药品包装2.png" style="height: 180px;">
+            </td>
+            <td class="formValue" align="center">
+                <img id="icon-vension" src="~/Content/Images/药品包装3.png" style="height: 180px; ">
+            </td>
+        </tr>
+    </table>
+</div>

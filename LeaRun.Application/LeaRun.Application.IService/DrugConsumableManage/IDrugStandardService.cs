@@ -13,5 +13,7 @@ namespace LeaRun.Application.IService.DrugConsumableManage
         DrugStandardEntity GetEntity(string keyvalue);
 
         IEnumerable<DrugStandardEntity> GetList(Pagination pagination,string keyvalue);
+
+        IEnumerable<DrugCompanyEntity> GetCompanyDrugList(Pagination pagination, string keyvalue);
     }
 }

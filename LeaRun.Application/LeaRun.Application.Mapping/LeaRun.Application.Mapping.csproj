@@ -86,6 +86,7 @@
     <Compile Include="CustomerManage\OrderMap.cs" />
     <Compile Include="DemoManage\OfficeRkEntryMap.cs" />
     <Compile Include="DemoManage\OfficeRkMap.cs" />
+    <Compile Include="DrugConsumableManage\DrugCompanyMap.cs" />
     <Compile Include="DrugConsumableManage\DrugStandardMap.cs" />
     <Compile Include="FlowManage\WFDelegateRecordMap.cs" />
     <Compile Include="FlowManage\WFDelegateRuleMap.cs" />

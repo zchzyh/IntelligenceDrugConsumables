@@ -43,6 +43,18 @@ namespace LeaRun.Application.Service.DrugConsumableManage
             strSql.Append(@"  SELECT * FROM [HQPAS].[dbo].[Drug_Standard] ");
             return this.HQPASRepository().FindList<DrugStandardEntity>(strSql.ToString(), parameter.ToArray(), pagination);
         }
+
+        public IEnumerable<DrugCompanyEntity> GetCompanyDrugList(Pagination pagination, string queryJson)
+        {
+            var queryParam = queryJson.ToJObject();
+            List<DbParameter> parameter = new List<DbParameter>();
+            StringBuilder strSql = new StringBuilder();
+
+            strSql.Append(@"  SELECT * FROM [HQPAS].[dbo].[Drug_Company] ");
+            return this.HQPASRepository().FindList<DrugCompanyEntity>(strSql.ToString(), parameter.ToArray(), pagination);
+
+
+        }
     }
     
 }
