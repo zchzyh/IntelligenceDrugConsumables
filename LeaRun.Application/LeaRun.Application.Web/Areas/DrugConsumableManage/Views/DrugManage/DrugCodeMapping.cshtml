@@ -187,69 +187,72 @@
     }
 </script>
 
-<div class="titlePanel">
-    <div class="title-search">
-        <table>
-            <tr>
-                <td>
-                    <div id="Year" class="btn-group">
-                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择药品标准库</a>
-                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                        </ul>
-                    </div>
-                </td>
-                <td>
-                    <div id="company" class="btn-group">
-                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择厂商</a>
-                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
-                        <ul class="dropdown-menu"></ul>
-                    </div>
-                </td>
-                <td>
-                    <div id="hospital" class="btn-group">
-                        <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择医院</a>
-                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a tabindex="-1" href="#">广东省第一人民医院</a></li>
-                            <li><a tabindex="-1" href="#">华侨医院</a></li>
-                            <li><a tabindex="-1" href="#">红会医院</a></li>
-                        </ul>
-                    </div>
-                </td>
-                <td style="padding-left: 5px;">
-                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;药品目录对比</a>
-                </td>
-                <td style="padding-left: 5px;">
-                    <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;相同药品目录</a>
-                </td>
-                <td style="padding-left: 5px;">
-                    <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;疑似药品目录</a>
-                </td>
-                <td style="padding-left: 5px;">
-                    <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;匹配不上目录</a>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div class="toolbar">
-        <div class="btn-group">
-            @*<a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
-                <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
-                <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>*@
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+
+        <div class="title-search">
+            <table>
+                <tr>
+                    <td>
+                        <div id="Year" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择药品标准库</a>
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                            </ul>
+                        </div>
+                    </td>
+                    <td>
+                        <div id="company" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择厂商</a>
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                            <ul class="dropdown-menu"></ul>
+                        </div>
+                    </td>
+                    <td>
+                        <div id="hospital" class="btn-group">
+                            <a class="btn btn-default dropdown-text" data-toggle="dropdown">选择医院</a>
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a tabindex="-1" href="#">广东省第一人民医院</a></li>
+                                <li><a tabindex="-1" href="#">华侨医院</a></li>
+                                <li><a tabindex="-1" href="#">红会医院</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;药品目录对比</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;相同药品目录</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;疑似药品目录</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;匹配不上目录</a>
+                    </td>
+                </tr>
+            </table>
         </div>
-        @*<script>$('.toolbar').authorizeButton()</script>*@
-    </div>
-</div>
 
-<div class="gridPanel" id="baseCode">
-    <div class="codeTable" id="codeType" style="float:left; padding-right: 10px; overflow-x:auto;">
-        <table id="gridTable"></table>
-        <div id="codeKindPager"></div>
+        <div class="toolbar">
+            <div class="btn-group">
+                <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            </div>
+        </div>
     </div>
 
-    <div class="codeTable" id="codeDetail" style="float:left; overflow-x:auto;">
-        <table id="gridTable1"></table>
-        <div id="codeDetailPager"></div>
+    <div class="gridPanel" id="baseCode">
+        <div class="codeTable" id="codeType" style="float: left; padding-right: 10px; overflow-x: auto; width: 50%">
+            <table id="gridTable"></table>
+            <div id="codeKindPager"></div>
+        </div>
+
+        <div class="codeTable" id="codeDetail" style="float: left; overflow-x: auto; width: 50%">
+            <table id="gridTable1"></table>
+            <div id="codeDetailPager"></div>
+        </div>
     </div>
 </div>

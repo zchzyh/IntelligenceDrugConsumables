@@ -220,6 +220,9 @@
     <Compile Include="Areas\BaseManage\Controllers\UserController.cs" />
     <Compile Include="Areas\BaseManage\Controllers\PostController.cs" />
     <Compile Include="Areas\BaseManage\Controllers\UserGroupController.cs" />
+    <Compile Include="Areas\BusinessManage\Controllers\BusinessDataController.cs" />
+    <Compile Include="Areas\BusinessManage\BusinessManageAreaRegistration.cs" />
+    <Compile Include="Areas\BusinessManage\Controllers\BusinessSystemController.cs" />
     <Compile Include="Areas\CollectionAnalysis\CollectionAnalysisAreaRegistration.cs" />
     <Compile Include="Areas\CollectionAnalysis\Controllers\DataAnalysisController.cs" />
     <Compile Include="Areas\CollectionAnalysis\Controllers\JobAnalysisController.cs" />
@@ -1491,6 +1494,15 @@
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugCodeMapping.cshtml" />
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugHospitalInfo.cshtml" />
     <Content Include="Areas\DrugConsumableManage\Views\DrugManage\DrugStandardEdit.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\Web.config" />
+    <Content Include="Areas\BusinessManage\Views\BusinessSystem\SystemManage.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessSystem\EditionManage.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessSystem\SystemParameterManage.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessSystem\SystemConfigureManage.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\PatientData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\PacsData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\LisData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\SensingData.cshtml" />
     <None Include="Properties\PublishProfiles\6.1.pubxml" />
     <Content Include="Areas\FlowManage\Views\FlowLaunch\Index.cshtml" />
     <Content Include="Areas\FlowManage\Views\FormDesign\FormPreview.cshtml" />
@@ -1551,6 +1563,8 @@
     <Content Include="Global.asax" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Areas\BusinessManage\Models\" />
+    <Folder Include="Areas\BusinessManage\Views\Shared\" />
     <Folder Include="Areas\CollectionManage\Views\Shared\" />
     <Folder Include="Areas\DrugConsumableManage\Models\" />
     <Folder Include="Areas\DrugConsumableManage\Views\Shared\" />
