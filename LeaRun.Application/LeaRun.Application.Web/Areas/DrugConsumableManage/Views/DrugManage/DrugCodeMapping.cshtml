@@ -189,7 +189,6 @@
 
 <div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
     <div class="center-Panel">
-
         <div class="title-search">
             <table>
                 <tr>
@@ -200,6 +199,18 @@
                             <ul class="dropdown-menu">
                             </ul>
                         </div>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;药品目录对比</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;相同药品目录</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;疑似药品目录</a>
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;匹配不上目录</a>
                     </td>
                     <td>
                         <div id="company" class="btn-group">
@@ -219,22 +230,9 @@
                             </ul>
                         </div>
                     </td>
-                    <td style="padding-left: 5px;">
-                        <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;药品目录对比</a>
-                    </td>
-                    <td style="padding-left: 5px;">
-                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;相同药品目录</a>
-                    </td>
-                    <td style="padding-left: 5px;">
-                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;疑似药品目录</a>
-                    </td>
-                    <td style="padding-left: 5px;">
-                        <a id="btn_Import" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;匹配不上目录</a>
-                    </td>
                 </tr>
             </table>
         </div>
-
         <div class="toolbar">
             <div class="btn-group">
                 <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
@@ -243,7 +241,6 @@
             </div>
         </div>
     </div>
-
     <div class="gridPanel" id="baseCode">
         <div class="codeTable" id="codeType" style="float: left; padding-right: 10px; overflow-x: auto; width: 50%">
             <table id="gridTable"></table>

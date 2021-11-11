@@ -86,6 +86,8 @@
     <Compile Include="BaseManage\Base_ModuleBLL.cs" />
     <Compile Include="BaseManage\OrganizeBLL.cs" />
     <Compile Include="BaseManage\studentBLL.cs" />
+    <Compile Include="BusinessManage\BusinessDataBLL.cs" />
+    <Compile Include="BusinessManage\BusinessSystemBLL.cs" />
     <Compile Include="CollectionAnalysis\CollectionDataAnalysisBLL.cs" />
     <Compile Include="CollectionAnalysis\CollectionWorkAnalysisBLL.cs" />
     <Compile Include="CollectionManage\BpcSc001BLL.cs" />

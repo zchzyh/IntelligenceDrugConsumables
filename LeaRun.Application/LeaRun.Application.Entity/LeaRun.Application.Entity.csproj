@@ -57,6 +57,11 @@
     <Compile Include="BaseManage\studentEntity.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="BusinessManage\EditionInfoEntity.cs" />
+    <Compile Include="BusinessManage\PantientInfoEntity.cs" />
+    <Compile Include="BusinessManage\SystemInfoEntity.cs" />
+    <Compile Include="BusinessManage\SystemParameterEntity.cs" />
+    <Compile Include="BusinessManage\ViewModel\SystemEditionInfoModel.cs" />
     <Compile Include="CollectionAnalysis\ViewModel\AuditTaskInspectModel.cs" />
     <Compile Include="CollectionAnalysis\ViewModel\CollectionTaskInspectModel.cs" />
     <Compile Include="CollectionManage\BpcSC004Entity.cs" />

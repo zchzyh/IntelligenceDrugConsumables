@@ -75,6 +75,8 @@
     <Compile Include="BaseManage\IJobService.cs" />
     <Compile Include="BaseManage\IUserGroupService.cs" />
     <Compile Include="BaseManage\studentIService.cs" />
+    <Compile Include="BusinessManage\IBusinessDataService.cs" />
+    <Compile Include="BusinessManage\IBusinessSystemService.cs" />
     <Compile Include="CollectionAnalysis\ICollectionDataAnalysisService.cs" />
     <Compile Include="CollectionAnalysis\ICollectionWorkAnalysisService.cs" />
     <Compile Include="CollectionManage\IBpcSc001Service.cs" />

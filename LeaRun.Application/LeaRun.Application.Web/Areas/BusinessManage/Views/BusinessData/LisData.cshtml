@@ -1,5 +1,171 @@
 ﻿@{
-    ViewBag.Title = "LisData";
+    ViewBag.Title = "LIS 检验数据";
+    Layout = "~/Views/Shared/_Index.cshtml";
 }
+<script>
+    $(function () {
+        //GetSchemeType();
+        GetGrid();
+        InitialPage();
+    });
 
-<h2>LisData</h2>
+    //初始化页面
+    //function InitialPage() {
+    //    //resize重设(表格、树形)宽高
+    //    $(window).resize(function (e) {
+    //        window.setTimeout(function () {
+    //            $('#gridTable').setGridWidth(($('.gridPanel').width()));
+    //            $("#gridTable").setGridHeight($(window).height() - 136.5);
+    //        }, 200);
+    //        e.stopPropagation();
+    //    });
+    //}
+    //初始化页面
+    function initialPage() {
+        //resize重设(表格、树形)宽高
+        $(window).resize(function (e) {
+            window.setTimeout(function () {
+                resizePage();
+            },
+                200);
+            e.stopPropagation();
+        });
+        resizePage();
+    }
+
+    function resizePage() {
+        $("#gridTable").setGridHeight($(window).height() - 135);
+        $('#gridTable').setGridWidth(($('.gridPanel').width() - 2));
+    };
+
+    //加载树
+    function GetSchemeType() {
+        //加载药品标准库类型
+        $.SetForm({
+            url: "../../BusinessManage/BusinData/GetPantientInfoList",
+            param: {},
+            success: function (data) {
+                $.each(data, function (id, item) {
+                    var row = '<li><a data-value="' + item.ItemValue + '">' + item.ItemText + '</a></li>';
+                    $('#Year').find('ul').append(row);
+                });
+                //年度选中，生成查询条件
+                $("#Year .dropdown-menu li").click(function () {
+                    var text = $(this).find('a').html();
+                    var value = $(this).find('a').attr('data-value');
+                    $("#Year .dropdown-text").html(text).attr('data-value', value);
+                });
+            }
+        });
+    }
+
+    var selectedRowIndex = 0;
+
+    //加载表格
+    function GetGrid() {
+        var $gridTable = $("#gridTable");
+        $gridTable.jqGrid({
+            url: "../../BusinessManage/BusinessData/GetPantientInfoList",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "患者编号", name: "CASE_NUM", index: "CASE_NUM", lign: "center", width: "10px" },
+                { label: "患者姓名", name: "NAME", index: "NAME", align: "center", width: "10px" },
+                { label: "性别", name: "SEX_CODE", index: "SEX_CODE", align: "center", width: "10px" },
+                { label: "年龄", name: "AGE", index: "AGE", align: "center", width: "10px" },
+                { label: "健康卡号", name: "HEALTH_CARD_NUM", index: "HEALTH_CARD_NUM", align: "center", width: "10px" },
+                { label: "医疗保险号", name: "INSURANCE_NUM", index: "INSURANCE_NUM", align: "center", width: "10px" },
+                { label: "身份证号", name: "AGE", ID_NUM: "ID_NUM", align: "center", width: "10px" },
+                { label: "住址", name: "ADDRESS", index: "ADDRESS", align: "center", width: "10px" },
+                { label: "婚姻状况", name: "MARITAL_STATUS_CODE", index: "MARITAL_STATUS_CODE", align: "center", width: "10px" },
+                { label: "电话", name: "TEL", index: "TEL", align: "center", width: "10px" },
+                { label: "民族", name: "NATION_CODE", index: "NATION_CODE", align: "center", width: "10px" },
+                { label: "国籍", name: "COUNTRY_CODE", index: "COUNTRY_CODE", align: "center", width: "10px" },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,//每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'CASE_NUM',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            rownumbers: true,//是否显示自增序号
+            gridview: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                year: $("#Year").find('.dropdown-text').attr('data-value'),
+            };
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+    }
+    //新增
+    function btn_add() {
+        dialogOpen({
+            id: "Form",
+            title: '新增业务系统信息',
+            url: '/DrugConsumableManage/DrugManage/DrugStandardEdit',
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+    };
+    //编辑
+    function btn_edit() {
+        dialogOpen({
+            id: "Form",
+            title: '修改业务系统信息',
+            url: '/DrugConsumableManage/DrugManage/DrugStandardEdit',
+            width: "500px",
+            height: "400px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].AcceptClick();
+            }
+        });
+
+    }
+    //删除
+    function btn_delete() {
+
+    }
+</script>
+<div class="titlePanel">
+    <div class="title-search">
+        <table>
+            <tr>
+                <td>
+                    <input id="txt_Keyword" type="text" class="form-control" placeholder="" style="width: 200px;" />
+                </td>
+                <td style="padding-left: 5px;">
+                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+            <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+            <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+        </div>
+        @*<script>$('.toolbar').authorizeButton()</script>*@
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridTable"></table>
+    <div id="gridPager"></div>
+</div>
