@@ -1,11 +1,12 @@
 ﻿@{
-    ViewBag.Title = "诺博业务系统版本管理";
+    ViewBag.Title = "系统参数设定";
     Layout = "~/Views/Shared/_Index.cshtml";
 }
 <script>
     $(function () {
         //GetSchemeType();
         GetGrid();
+        GetGrid1();
         InitialPage();
     });
 
@@ -72,11 +73,9 @@
             colModel: [
                 { label: "系统编码", name: "Sys_Code", index: "Sys_Code", lign: "center" },
                 { label: "系统名称", name: "Sys_Name", index: "Sys_Name", align: "center" },
-                { label: "系统备注", name: "Sys_Comment", index: "Sys_Comment", align: "center" },
                 { label: "版本编号", name: "Edition_Code", index: "Edition_Code", align: "center" },
                 { label: "版本名称", name: "Edition_Name", index: "Edition_Name", align: "center" },
                 { label: "版本说明", name: "Edition_Comment", index: "Edition_Comment", align: "center" },
-                { label: "版本发布日期", name: "Edition_StartData", index: "Edition_StartData", align: "center" },
             ],
             viewrecords: true,//显示检索记录
             rowNum: 30,//每页数量，Pagination的字段rows
@@ -106,6 +105,51 @@
             }).trigger('reloadGrid');
         });
     }
+
+    //加载表格
+    function GetGrid1() {
+        var $gridTable1 = $("#gridTable1");
+        $gridTable1.jqGrid({
+            url: "../../BusinessManage/BusinessSystem/GetSystemParameters",
+            datatype: "json",
+            height: $(window).height() - 136.5,
+            autowidth: true,
+            colModel: [
+                { label: "参数代码", name: "Par_Code", index: "Par_Code", lign: "center" },
+                { label: "参数名称", name: "Par_Name", index: "Par_Name", align: "center" },
+                { label: "参数说明", name: "Par_Coment", index: "Par_Coment", align: "center" },
+                { label: "参数值域", name: "Par_Value_Key", index: "Par_Value_Key", align: "center" },
+                { label: "参数默认值", name: "Par_Value_Defult_Value", index: "Par_Value_Defult_Value", align: "center" },
+            ],
+            viewrecords: true,//显示检索记录
+            rowNum: 30,//每页数量，Pagination的字段rows
+            rowList: [30, 50, 100],
+            pager: "#gridPager",
+            sortname: 'Par_Code',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            rownumbers: true,//是否显示自增序号
+            gridview: true,
+            onSelectRow: function () {
+                selectedRowIndex = $("#" + this.id).getGridParam('selrow');
+            },
+            gridComplete: function () {
+                $("#" + this.id).setSelection(selectedRowIndex, false);
+            }
+        });
+        //$gridTable.authorizeColModel($('.gridPanel').width());
+        //查询事件
+        $("#btn_Search").click(function () {
+            var queryJson = {
+                year: $("#Year").find('.dropdown-text').attr('data-value'),
+            };
+            $gridTable.jqGrid('setGridParam', {
+                postData: { queryJson: JSON.stringify(queryJson) },
+                //保证搜索时是第一页
+                page: 1
+            }).trigger('reloadGrid');
+        });
+    }
+
     //新增
     function btn_add() {
         dialogOpen({
@@ -138,29 +182,38 @@
 
     }
 </script>
-<div class="titlePanel">
-    <div class="title-search">
-        <table>
-            <tr>
-                <td>
-                    <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入系统名称或系统编码" style="width: 200px;" />
-                </td>
-                <td style="padding-left: 5px;">
-                    <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div class="toolbar">
-        <div class="btn-group">
-            <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
-            <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
-            <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+
+<div class="ui-layout" id="layout" style="height: 100%; width: 100%;">
+    <div class="center-Panel">
+        <div class="title-search">
+            <table>
+                <tr>
+                    <td>
+                        <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入系统名称或系统编码" style="width: 200px;" />
+                    </td>
+                    <td style="padding-left: 5px;">
+                        <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
+                    </td>
+                </tr>
+            </table>
         </div>
-        @*<script>$('.toolbar').authorizeButton()</script>*@
+        <div class="toolbar">
+            <div class="btn-group">
+                <a id="lr-add" class="btn btn-default" onclick="btn_add()"><i class="fa fa-plus"></i>&nbsp;新增</a>
+                <a id="lr-edit" class="btn btn-default" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+                <a id="lr-delete" class="btn btn-default" onclick="btn_delete()"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            </div>
+        </div>
     </div>
-</div>
-<div class="gridPanel">
-    <table id="gridTable"></table>
-    <div id="gridPager"></div>
+    <div class="gridPanel" id="baseCode">
+        <div class="codeTable" id="codeType" style="float: left; padding-right: 10px; overflow-x: auto; width: 50%">
+            <table id="gridTable"></table>
+            <div id="codeKindPager"></div>
+        </div>
+
+        <div class="codeTable" id="codeDetail" style="float: left; overflow-x: auto; width: 50%">
+            <table id="gridTable1"></table>
+            <div id="codeDetailPager"></div>
+        </div>
+    </div>
 </div>

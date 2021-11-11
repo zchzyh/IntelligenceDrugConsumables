@@ -73,6 +73,8 @@
     <Compile Include="AuthorizeManage\ModuleFormService.cs" />
     <Compile Include="BaseManage\Base_ModuleService.cs" />
     <Compile Include="BaseManage\studentService.cs" />
+    <Compile Include="BusinessManage\BusinessDataService.cs" />
+    <Compile Include="BusinessManage\BusinessSystemService.cs" />
     <Compile Include="CollectionAnalysis\CollectionDataAnalysisService.cs" />
     <Compile Include="CollectionAnalysis\CollectionWorkAnalysisService.cs" />
     <Compile Include="CollectionManage\BpcSc001Service.cs" />

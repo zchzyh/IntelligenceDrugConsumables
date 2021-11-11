@@ -61,6 +61,10 @@
     <Compile Include="AuthorizeManage\ModuleFormInstanceMap.cs" />
     <Compile Include="AuthorizeManage\ModuleFormMap.cs" />
     <Compile Include="BaseManage\studentMap.cs" />
+    <Compile Include="BusinessManage\EditionInfoMap.cs" />
+    <Compile Include="BusinessManage\PantientInfoMap.cs" />
+    <Compile Include="BusinessManage\SystemInfoMap.cs" />
+    <Compile Include="BusinessManage\SystemParameterMap.cs" />
     <Compile Include="CollectionManage\BpcSC004Map.cs" />
     <Compile Include="CollectionManage\BpcSP006Map.cs" />
     <Compile Include="CollectionManage\BpcSc001Map.cs" />

@@ -1503,6 +1503,10 @@
     <Content Include="Areas\BusinessManage\Views\BusinessData\PacsData.cshtml" />
     <Content Include="Areas\BusinessManage\Views\BusinessData\LisData.cshtml" />
     <Content Include="Areas\BusinessManage\Views\BusinessData\SensingData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessSystem\SystemParameterSettings.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\PrescriptionData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\DoctorAdviceData.cshtml" />
+    <Content Include="Areas\BusinessManage\Views\BusinessData\OperationData.cshtml" />
     <None Include="Properties\PublishProfiles\6.1.pubxml" />
     <Content Include="Areas\FlowManage\Views\FlowLaunch\Index.cshtml" />
     <Content Include="Areas\FlowManage\Views\FormDesign\FormPreview.cshtml" />

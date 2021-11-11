@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "诺博业务系统版本管理";
+    ViewBag.Title = "手术与麻醉数据";
     Layout = "~/Views/Shared/_Index.cshtml";
 }
 <script>
@@ -42,7 +42,7 @@
     function GetSchemeType() {
         //加载药品标准库类型
         $.SetForm({
-            url: "../../DrugConsumableManage/DrugManage/GetDrugType",
+            url: "../../BusinessManage/BusinData/GetPantientInfoList",
             param: {},
             success: function (data) {
                 $.each(data, function (id, item) {
@@ -65,25 +65,30 @@
     function GetGrid() {
         var $gridTable = $("#gridTable");
         $gridTable.jqGrid({
-            url: "../../BusinessManage/BusinessSystem/GetSystemEditionInfo",
+            url: "../../BusinessManage/BusinessData/GetPantientInfoList",
             datatype: "json",
             height: $(window).height() - 136.5,
             autowidth: true,
             colModel: [
-                { label: "系统编码", name: "Sys_Code", index: "Sys_Code", lign: "center" },
-                { label: "系统名称", name: "Sys_Name", index: "Sys_Name", align: "center" },
-                { label: "系统备注", name: "Sys_Comment", index: "Sys_Comment", align: "center" },
-                { label: "版本编号", name: "Edition_Code", index: "Edition_Code", align: "center" },
-                { label: "版本名称", name: "Edition_Name", index: "Edition_Name", align: "center" },
-                { label: "版本说明", name: "Edition_Comment", index: "Edition_Comment", align: "center" },
-                { label: "版本发布日期", name: "Edition_StartData", index: "Edition_StartData", align: "center" },
+                { label: "患者编号", name: "CASE_NUM", index: "CASE_NUM", lign: "center", width: "10px" },
+                { label: "患者姓名", name: "NAME", index: "NAME", align: "center", width: "10px" },
+                { label: "性别", name: "SEX_CODE", index: "SEX_CODE", align: "center", width: "10px" },
+                { label: "年龄", name: "AGE", index: "AGE", align: "center", width: "10px" },
+                { label: "健康卡号", name: "HEALTH_CARD_NUM", index: "HEALTH_CARD_NUM", align: "center", width: "10px" },
+                { label: "医疗保险号", name: "INSURANCE_NUM", index: "INSURANCE_NUM", align: "center", width: "10px" },
+                { label: "身份证号", name: "AGE", ID_NUM: "ID_NUM", align: "center", width: "10px" },
+                { label: "住址", name: "ADDRESS", index: "ADDRESS", align: "center", width: "10px" },
+                { label: "婚姻状况", name: "MARITAL_STATUS_CODE", index: "MARITAL_STATUS_CODE", align: "center", width: "10px" },
+                { label: "电话", name: "TEL", index: "TEL", align: "center", width: "10px" },
+                { label: "民族", name: "NATION_CODE", index: "NATION_CODE", align: "center", width: "10px" },
+                { label: "国籍", name: "COUNTRY_CODE", index: "COUNTRY_CODE", align: "center", width: "10px" },
             ],
             viewrecords: true,//显示检索记录
             rowNum: 30,//每页数量，Pagination的字段rows
             rowList: [30, 50, 100],
             pager: "#gridPager",
-            sortname: 'Sys_Code,Edition_Code',//排序字段，Pagination的字段sidx，分页必须传
-            //sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
+            sortname: 'CASE_NUM',//排序字段，Pagination的字段sidx，分页必须传
+            sortorder: 'desc',//排序方式，Pagination的字段sord，默认asc
             rownumbers: true,//是否显示自增序号
             gridview: true,
             onSelectRow: function () {
@@ -143,7 +148,7 @@
         <table>
             <tr>
                 <td>
-                    <input id="txt_Keyword" type="text" class="form-control" placeholder="请输入系统名称或系统编码" style="width: 200px;" />
+                    <input id="txt_Keyword" type="text" class="form-control" placeholder="" style="width: 200px;" />
                 </td>
                 <td style="padding-left: 5px;">
                     <a id="btn_Search" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;查询</a>
